@@ -1,0 +1,27 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: gitlab-cluster
+  region: us-west-2
+
+managedNodeGroups:
+  - name: gitlab-1
+    instanceType: m5.large
+    desiredCapacity: 2
+    volumeSize: 100
+    ssh:
+      enableSsm: true
+
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
+
+# git:
+#   repo:
+#     url: "git@github.com:18F/identity-gitlab.git"
+#     branch: main
+#     fluxPath: "flux/"
+#   operator:
+#     namespace: "flux"
+#     withHelm: true
