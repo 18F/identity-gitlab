@@ -12,6 +12,7 @@ managedNodeGroups:
     volumeSize: 100
     ssh:
       enableSsm: true
+    spot: true
 
 cloudWatch:
   clusterLogging:
