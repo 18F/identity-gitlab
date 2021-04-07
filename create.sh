@@ -26,6 +26,7 @@ helm upgrade -i aws-load-balancer-controller eks/aws-load-balancer-controller \
 
 # install gitlab stuff here
 helm repo add gitlab https://charts.gitlab.io/
+helm repo update
 helm install gitlab gitlab/gitlab -f gitlab_values.yml
 
 echo "The root password is...."

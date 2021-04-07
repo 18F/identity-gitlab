@@ -1,12 +1,13 @@
 ---
 global:
   hosts:
-    # domain: gitlab.identitysandbox.gov
-    # XXX Sidestepping TLS...
-    https: false
+    domain: gitlab.identitysandbox.gov
+    gitlab:
+      name: gitlab.gitlab.identitysandbox.gov
+    https: true
   ingress:
     # Do not get certificates via Let's Encrypt
     configureCertmanager: false
+    class: alb
 certmanager-issuer:
   email: security@login.gov
-
