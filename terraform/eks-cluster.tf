@@ -25,6 +25,17 @@ resource "aws_eks_cluster" "eks" {
   ]
 }
 
+# XXX Such a terrible hack:  https://github.com/hashicorp/terraform-provider-aws/issues/10104
+data "external" "thumbprint" {
+  program = ["${path.module}/oidc-thumbprint.sh", var.region]
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.external.thumbprint.result.thumbprint]
+  url             = aws_eks_cluster.eks.identity.0.oidc.0.issuer
+}
+
 resource "aws_iam_role" "eks-cluster" {
   name = "${var.cluster_name}-role"
 

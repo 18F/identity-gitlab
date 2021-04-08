@@ -2,5 +2,6 @@ private.pem
 public.crt
 .terraform
 terraform/.terraform/
+terraform/dev.log
 terraform-state/.terraform/
 terraform-k8s/.terraform/
