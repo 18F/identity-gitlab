@@ -31,3 +31,13 @@ variable "node_disk_size" {
   default = 20
   description = "local disk size in GB for nodes"
 }
+
+variable "node_max_size" {
+  default = 14
+  description = "maximum size for node group"
+}
+
+variable "node_instance_type" {
+  default = "t3a.large"
+  description = "instance type for nodes"
+}
