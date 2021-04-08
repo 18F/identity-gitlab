@@ -8,15 +8,16 @@ resource "aws_eks_node_group" "eks" {
   node_group_name = "eks-${var.cluster_name}"
   node_role_arn   = aws_iam_role.eks-node.arn
   subnet_ids      = aws_subnet.eks[*].id
-  instance_types  = ["t3a.large"]
+  instance_types  = [var.node_instance_type]
+  capacity_type   = var.nodetype
 
   scaling_config {
     desired_size = 3
-    max_size     = 14
+    max_size     = var.node_max_size
     min_size     = 2
   }
 
-  disk_size = 120
+  disk_size = var.node_disk_size
 
   tags = {
     "k8s.io/cluster-autoscaler/enabled"             = "true",

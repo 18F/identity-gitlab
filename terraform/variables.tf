@@ -21,3 +21,13 @@ variable "kubecontrolnets" {
   default = ["98.146.223.15/32", "159.142.0.0/16", "50.46.2.51/32"]
   type    = list(string)
 }
+
+variable "nodetype" {
+  default = "SPOT"
+  description = "make this be SPOT or ON_DEMAND"
+}
+
+variable "node_disk_size" {
+  default = 20
+  description = "local disk size in GB for nodes"
+}

@@ -1,3 +1,4 @@
 private.pem
 public.crt
 .terraform
+terraform/.terraform/

@@ -12,7 +12,7 @@ resource "helm_release" "gitlab" {
   chart      = "gitlab"
   version    = "4.10.2"
   namespace  = "gitlab"
-  depends_on = [null_resource.k8s_up]
+  depends_on = [null_resource.k8s_up, kubernetes_namespace.gitlab]
 
   set {
     name  = "gitlab.name"
