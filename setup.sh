@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # This script does the initial setup for the environment.
-# You should only run this once to get it going, then just use terraform apply
+# You should only run this once to get it going, then just use deploy.sh
 # after that.
 # 
 set -e

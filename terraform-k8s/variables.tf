@@ -19,6 +19,7 @@ variable "certmanager-issuer" {
   type    = string
 }
 
+# XXX we will be able to nuke this once we move to tf 0.13
 variable "k8s_endpoint" {
   description = "this is so we will run the module after k8s comes up"
 }
