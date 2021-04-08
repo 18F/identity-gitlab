@@ -41,7 +41,7 @@ provider "kubernetes" {
 
 # This is so we can do CRDs and arbitrary yaml
 provider "kubernetes-alpha" {
-  version = "~> 0.3.2"
+  version = "~> 0.2.1"
   host                   = aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
 

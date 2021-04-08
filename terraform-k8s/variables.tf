@@ -19,6 +19,14 @@ variable "certmanager-issuer" {
   type    = string
 }
 
+variable "oidc_arn" {
+  description = "OIDC arn for cluster"
+}
+
+variable "oidc_url" {
+  description = "OIDC URL for cluster"
+}
+
 # XXX we will be able to nuke this once we move to tf 0.13
 variable "k8s_endpoint" {
   description = "this is so we will run the module after k8s comes up"
