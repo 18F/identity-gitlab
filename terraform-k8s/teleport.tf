@@ -12,7 +12,7 @@ resource "helm_release" "teleport-cluster" {
   chart      = "teleport"
   version    = "0.0.12"
   namespace  = "teleport"
-  depends_on = [kubernetes_namespace.teleport, kubernetes_config_map.teleport]
+  depends_on = [kubernetes_namespace.teleport, kubernetes_config_map.teleport-cluster]
 
   set {
     name  = "namespace"
@@ -41,10 +41,10 @@ resource "helm_release" "teleport-cluster" {
 }
 
 # This is where the customConfig lives (same name as the helm release)
-resource "kubernetes_config_map" "teleport" {
+resource "kubernetes_config_map" "teleport-cluster" {
   depends_on = [kubernetes_namespace.teleport]
   metadata {
-    name = "teleport"
+    name = "teleport-cluster"
     namespace = "teleport"
   }
 
