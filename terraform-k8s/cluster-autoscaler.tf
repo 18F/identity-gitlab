@@ -5,6 +5,7 @@ resource "helm_release" "eksclusterautoscaler" {
   chart      = "cluster-autoscaler-chart"
   version    = "9.9.2"
   namespace  = "kube-system"
+  depends_on = [null_resource.k8s_up]
 
   set {
     name  = "awsRegion"

@@ -49,12 +49,6 @@ resource "aws_iam_role" "eks-node" {
 POLICY
 }
 
-resource "aws_iam_role_policy" "idp-ses-email" {
-  name   = "${var.cluster_name}-idp-ses-email"
-  role       = aws_iam_role.eks-node.name
-  policy = data.aws_iam_policy_document.ses_email_role_policy.json
-}
-
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
   role       = aws_iam_role.eks-node.name

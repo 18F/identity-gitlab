@@ -18,3 +18,13 @@ variable "certmanager-issuer" {
   default = "security@login.gov"
   type    = string
 }
+
+variable "k8s_endpoint" {
+  description = "this is so we will run the module after k8s comes up"
+}
+
+resource "null_resource" "k8s_up" {
+  triggers = {
+    dependency_id = var.k8s_endpoint
+  }
+}

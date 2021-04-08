@@ -1,5 +1,6 @@
 
 resource "kubernetes_namespace" "gitlab" {
+  depends_on = [null_resource.k8s_up]
   metadata {
     name = "gitlab"
   }
@@ -10,7 +11,8 @@ resource "helm_release" "gitlab" {
   repository = "https://charts.gitlab.io/" 
   chart      = "gitlab"
   version    = "4.10.2"
-  namespace  = kubernetes_namespace.gitlab.name
+  namespace  = "gitlab"
+  depends_on = [null_resource.k8s_up]
 
   set {
     name  = "gitlab.name"
