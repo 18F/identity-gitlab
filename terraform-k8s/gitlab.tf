@@ -1,6 +1,5 @@
 
 resource "kubernetes_namespace" "gitlab" {
-  depends_on = [null_resource.k8s_up]
   metadata {
     name = "gitlab"
   }

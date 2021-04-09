@@ -39,22 +39,35 @@ BUCKET="login-dot-gov-eks.${ACCOUNT}-${REGION}"
 SCRIPT_BASE=$(dirname "$0")
 RUN_BASE=$(pwd)
 
-
 # clean up tfstate files so that we get them from the backend
 find . -name terraform.tfstate -print0 | xargs -0 rm
 
-# set it up with the s3 backend, push into the directory.
-pushd "$SCRIPT_BASE/terraform"
 
+# do terraform!
+pushd "$SCRIPT_BASE/terraform"
 terraform init -backend-config="bucket=$BUCKET" \
       -backend-config="key=tf-state/$TF_VAR_cluster_name" \
       -backend-config="dynamodb_table=eks_terraform_locks" \
       -backend-config="region=$REGION" \
       -upgrade
-
-# launch everything!
 terraform apply
+
+# Gather info from terraform to use in terraform-k8s
+export TF_VAR_oidc_arn=$(terraform output oidc_arn)
+export TF_VAR_oidc_url=$(terraform output oidc_url)
 
 # This updates the kubeconfig so that we can access the cluster using kubectl
 aws eks update-kubeconfig --name "$TF_VAR_cluster_name"
+popd
+
+# Now do terraform-k8s
+# This is because we can't do terraform-k8s as a module yet:
+# https://github.com/hashicorp/terraform-provider-kubernetes-alpha/issues/133
+pushd "$SCRIPT_BASE/terraform-k8s"
+terraform init -backend-config="bucket=$BUCKET" \
+      -backend-config="key=tf-state/k8s-$TF_VAR_cluster_name" \
+      -backend-config="dynamodb_table=eks_terraform_locks" \
+      -backend-config="region=$REGION" \
+      -upgrade
+terraform apply
 popd

@@ -26,13 +26,3 @@ variable "oidc_arn" {
 variable "oidc_url" {
   description = "OIDC URL for cluster"
 }
-
-# XXX we will be able to nuke this once we move to tf 0.13
-variable "k8s_endpoint" {
-  description = "this is so we will run the module after k8s comes up"
-}
-resource "null_resource" "k8s_up" {
-  triggers = {
-    dependency_id = var.k8s_endpoint
-  }
-}
