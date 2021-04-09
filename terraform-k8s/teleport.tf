@@ -51,76 +51,30 @@ resource "kubernetes_config_map" "teleport-cluster" {
   data = {
     "teleport.yaml" = <<CUSTOMCONFIG
 teleport:
-  nodename: teleport-cluster
-  pid_file: /var/run/teleport.pid
-  data_dir: /var/lib/teleport
   log:
+    severity: ERROR
     output: stderr
-    severity: INFO
-  # storage settings included
-  storage:
-    type: dir
-
-  connection_limits:
-    max_connections: 1000
-    max_users: 250
 auth_service:
   enabled: true
-  license_file: /var/lib/license/license-enterprise.pem
-  authentication:
-    type: local
-  tokens:
-    - proxy,node,kube:dogs-are-much-nicer-than-cats
-    - trusted_cluster:trains-are-superior-to-cars
-
-  public_addr: teleport.example.com:3025
-  cluster_name: teleport.example.com
-  listen_addr: 0.0.0.0:3025
-  client_idle_timeout: never
-  disconnect_expired_cert: false
-  keep_alive_interval: 5m
-  keep_alive_count_max: 3
-
-ssh_service:
+  cluster_name: teleport-${var.cluster_name}.${var.domain}
+app_service:
   enabled: true
-  public_addr: teleport-clusternode:3022
-  listen_addr: 0.0.0.0:3022
-  commands:
-    - command:
-      - uptime
-      - -p
-      name: uptime
-      period: 30m
-  labels:
-    type: auth
-  enhanced_recording:
-    cgroup_path: /cgroup2
-    command_buffer_size: 8
-    disk_buffer_size: 128
-    enabled: false
-    network_buffer_size: 8
-  pam:
-    enabled: false
-    service_name: teleport
-
+  apps:
+    - name: gitlab
+      uri: "http://gitlab-webservice-default.gitlab:8181"
+kubernetes_service:
+  enabled: true
+  listen_addr: 0.0.0.0:3027
 proxy_service:
   enabled: true
-  public_addr: teleport.example.com:3080
-  web_listen_addr: 0.0.0.0:3080
-  listen_addr:  0.0.0.0:3023
-  tunnel_listen_addr:  0.0.0.0:3024
-  ssh_public_addr: teleport.example.com:3023
-  tunnel_public_addr: teleport.example.com:3024
-
-
-  https_key_file: /var/lib/certs/tls.key
-  https_cert_file: /var/lib/certs/tls.crt
-  # kubernetes section configures
-  # kubernetes proxy protocol support
-  kubernetes:
+  public_addr: 'teleport-${var.cluster_name}.${var.domain}:443'
+  kube_listen_addr: 0.0.0.0:3026
+  acme:
     enabled: true
-    public_addr: teleport.example.com:3026
-    listen_addr: 0.0.0.0:3026
+    email: security@login.gov
+ssh_service:
+  enabled: false
+
 CUSTOMCONFIG
   }
 }
