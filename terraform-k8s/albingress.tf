@@ -279,7 +279,7 @@ resource "helm_release" "alb-ingress-controller" {
   chart      = "aws-load-balancer-controller"
   version    = "1.1.6"
   namespace  = "kube-system"
-  depends_on = [null_resource.k8s_up, kubernetes_service_account.aws-load-balancer-controller]
+  depends_on = [kubernetes_service_account.aws-load-balancer-controller]
 
   set {
     name  = "clusterName"
