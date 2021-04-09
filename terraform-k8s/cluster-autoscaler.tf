@@ -2,8 +2,8 @@
 resource "helm_release" "eksclusterautoscaler" {
   name       = "eksclusterautoscaler"
   repository = "https://kubernetes.github.io/autoscaler" 
-  chart      = "cluster-autoscaler-chart"
-  version    = "2.0.0"
+  chart      = "cluster-autoscaler"
+  version    = "9.9.2"
   namespace  = "kube-system"
 
   set {

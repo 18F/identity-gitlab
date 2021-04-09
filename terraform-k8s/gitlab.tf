@@ -11,21 +11,16 @@ resource "helm_release" "gitlab" {
   chart      = "gitlab"
   version    = "4.10.2"
   namespace  = "gitlab"
-  depends_on = [kubernetes_namespace.gitlab]
+  depends_on = [kubernetes_namespace.gitlab, helm_release.alb-ingress-controller]
 
   set {
-    name  = "gitlab.name"
-    value = "${var.cluster_name}.${var.domain}"
+    name  = "global.hosts.hostSuffix"
+    value = var.cluster_name
   }
 
   set {
     name  = "global.hosts.domain"
     value = var.domain
-  }
-
-  set {
-    name  = "global.hosts.https"
-    value = true
   }
 
   set {

@@ -71,7 +71,7 @@ proxy_service:
   kube_listen_addr: 0.0.0.0:3026
   acme:
     enabled: true
-    email: security@login.gov
+    email: ${var.certmanager-issuer}
 ssh_service:
   enabled: false
 
