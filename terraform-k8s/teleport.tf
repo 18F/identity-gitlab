@@ -5,6 +5,26 @@ resource "kubernetes_namespace" "teleport" {
   }
 }
 
+data "aws_route53_zone" "gitlab" {
+  name         = var.domain
+}
+
+data "kubernetes_service" "teleport" {
+  depends_on = [helm_release.teleport-cluster]
+  metadata {
+    name = "teleport-cluster"
+    namespace = "teleport"
+  }
+}
+
+resource "aws_route53_record" "teleport" {
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "teleport-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
+}
+
 resource "helm_release" "teleport-cluster" {
   name       = "teleport-cluster"
   repository = "https://charts.releases.teleport.dev" 
