@@ -18,7 +18,7 @@ data "aws_region" "current" {}
 
 data "aws_availability_zones" "available" {}
 
-data "aws_caller_identity" "current" {} 
+data "aws_caller_identity" "current" {}
 
 # EKS info
 data "aws_eks_cluster" "eks" {
@@ -27,28 +27,28 @@ data "aws_eks_cluster" "eks" {
 
 # This is the main provider
 provider "kubernetes" {
-  version = "~> 2.0.3"
+  version                = "~> 2.0.3"
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
   exec {
     api_version = "client.authentication.k8s.io/v1alpha1"
-    command = "aws" # this is the actual 'aws' cli tool
-    args = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
-    env = {}
+    command     = "aws" # this is the actual 'aws' cli tool
+    args        = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
+    env         = {}
   }
 }
 
 # This is so we can do CRDs and arbitrary yaml
 provider "kubernetes-alpha" {
-  version = "~> 0.2.1"
+  version                = "~> 0.2.1"
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
 
   exec = {
     api_version = "client.authentication.k8s.io/v1alpha1"
-    command = "aws" # this is the actual 'aws' cli tool
-    args = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
-    env = {}
+    command     = "aws" # this is the actual 'aws' cli tool
+    args        = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
+    env         = {}
   }
 }
 
@@ -56,13 +56,13 @@ provider "kubernetes-alpha" {
 provider "helm" {
   version = "~> 2.1.0"
   kubernetes {
-  host                   = data.aws_eks_cluster.eks.endpoint
+    host                   = data.aws_eks_cluster.eks.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
     exec {
       api_version = "client.authentication.k8s.io/v1alpha1"
-      command = "aws" # this is the actual 'aws' cli tool
-      args = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
-      env = {}
+      command     = "aws" # this is the actual 'aws' cli tool
+      args        = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
+      env         = {}
     }
   }
 }

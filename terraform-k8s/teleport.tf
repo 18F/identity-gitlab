@@ -6,13 +6,13 @@ resource "kubernetes_namespace" "teleport" {
 }
 
 data "aws_route53_zone" "gitlab" {
-  name         = var.domain
+  name = var.domain
 }
 
 data "kubernetes_service" "teleport" {
   depends_on = [helm_release.teleport-cluster]
   metadata {
-    name = "teleport-cluster"
+    name      = "teleport-cluster"
     namespace = "teleport"
   }
 }
@@ -27,7 +27,7 @@ resource "aws_route53_record" "teleport" {
 
 resource "helm_release" "teleport-cluster" {
   name       = "teleport-cluster"
-  repository = "https://charts.releases.teleport.dev" 
+  repository = "https://charts.releases.teleport.dev"
   chart      = "teleport-cluster"
   version    = "6.0.0"
   namespace  = "teleport"
@@ -64,7 +64,7 @@ resource "kubernetes_config_map" "teleport-cluster" {
   # depends_on = [helm_release.teleport-cluster]
   depends_on = [kubernetes_namespace.teleport]
   metadata {
-    name = "teleport-cluster"
+    name      = "teleport-cluster"
     namespace = "teleport"
   }
 

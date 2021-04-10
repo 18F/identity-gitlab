@@ -7,7 +7,7 @@ resource "kubernetes_namespace" "gitlab" {
 
 resource "helm_release" "gitlab" {
   name       = "gitlab"
-  repository = "https://charts.gitlab.io/" 
+  repository = "https://charts.gitlab.io/"
   chart      = "gitlab"
   version    = "4.10.2"
   namespace  = "gitlab"

@@ -1,6 +1,6 @@
 
 variable "cluster_name" {
-  type    = string
+  type        = string
   description = "name of the cluster that we are deploying this stuff to"
 }
 
