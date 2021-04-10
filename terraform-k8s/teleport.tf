@@ -1,3 +1,13 @@
+#
+# To use this, you will need to create users.  There's probably
+# a way to do this with code, but here is how you set it up:
+# 
+# aws-vault exec tooling-admin -- kubectl -n teleport exec --stdin --tty teleport-cluster-<whatever> /bin/bash
+# tctl users add tspencer --roles=editor,access,admin --logins=root,ubuntu
+#
+# Then, you can go to teleport-${var.cluster_name}.gitlab.identitysandbox.gov
+# and log in with your new creds
+#
 
 resource "kubernetes_namespace" "teleport" {
   metadata {
@@ -20,6 +30,14 @@ data "kubernetes_service" "teleport" {
 resource "aws_route53_record" "teleport" {
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "teleport-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
+}
+
+resource "aws_route53_record" "teleport-gitlab" {
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "gitlab.teleport-${var.cluster_name}"
   type    = "CNAME"
   ttl     = "300"
   records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
@@ -81,7 +99,7 @@ app_service:
   enabled: true
   apps:
     - name: gitlab
-      uri: "http://gitlab-webservice-default.gitlab:8181"
+      uri: "https://gitlab-webservice-default.gitlab:8181"
 kubernetes_service:
   enabled: true
   listen_addr: 0.0.0.0:3027
