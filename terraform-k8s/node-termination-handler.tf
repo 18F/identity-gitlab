@@ -3,7 +3,7 @@
 # the spot instance is pre-empted.
 resource "helm_release" "aws-node-termination-handler" {
   name       = "aws-node-termination-handler"
-  repository = "https://aws.github.io/eks-charts" 
+  repository = "https://aws.github.io/eks-charts"
   chart      = "aws-node-termination-handler"
   version    = "0.14.2"
   namespace  = "kube-system"

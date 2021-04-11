@@ -204,7 +204,7 @@ EOF
 
 # This is kinda magic that I stole from an existing eksctl cluster
 resource "aws_iam_role" "alb" {
-  name = "${var.cluster_name}-alb"
+  name               = "${var.cluster_name}-alb"
   assume_role_policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -229,21 +229,21 @@ POLICY
 
 resource "kubernetes_service_account" "aws-load-balancer-controller" {
   metadata {
-    name = "aws-load-balancer-controller"
+    name      = "aws-load-balancer-controller"
     namespace = "kube-system"
     annotations = {
-        "eks.amazonaws.com/role-arn" = aws_iam_role.alb.arn
+      "eks.amazonaws.com/role-arn" = aws_iam_role.alb.arn
     }
   }
 }
 
 resource "kubernetes_manifest" "targetgroupbinding-crds" {
-    provider = kubernetes-alpha
+  provider = kubernetes-alpha
 
-    # from:
-    #   kustomize build "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master" | yq eval 'del(.status)' -
-    # which came from https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
-    manifest = yamldecode(file("${path.module}/alb-TargetGroupBinding-crds.yaml"))
+  # from:
+  #   kustomize build "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master" | yq eval 'del(.status)' -
+  # which came from https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
+  manifest = yamldecode(file("${path.module}/alb-TargetGroupBinding-crds.yaml"))
 }
 
 # # XXX we may need this someday to map iam roles to RBAC stuff in k8s
@@ -275,7 +275,7 @@ resource "kubernetes_manifest" "targetgroupbinding-crds" {
 
 resource "helm_release" "alb-ingress-controller" {
   name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts" 
+  repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
   version    = "1.1.6"
   namespace  = "kube-system"

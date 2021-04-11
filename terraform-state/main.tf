@@ -3,7 +3,7 @@
 #
 
 provider "aws" {
-  region = var.region
+  region  = var.region
   version = "~> 3.27.0"
 }
 
@@ -63,7 +63,7 @@ resource "aws_dynamodb_table" "tf-lock-table" {
   }
 
   server_side_encryption {
-   enabled = true
+    enabled = true
   }
 
   lifecycle {
@@ -72,4 +72,4 @@ resource "aws_dynamodb_table" "tf-lock-table" {
 }
 
 data "aws_caller_identity" "current" {
-} 
+}

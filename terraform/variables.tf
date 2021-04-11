@@ -3,7 +3,7 @@
 #
 
 variable "cluster_name" {
-  type    = string
+  type = string
 }
 
 variable "region" {
@@ -12,7 +12,7 @@ variable "region" {
 }
 
 variable "vpc_cidr" {
-  default = "10.0.0.0/16"
+  default     = "10.0.0.0/16"
   description = "cidr block for VPC"
 }
 
@@ -23,21 +23,21 @@ variable "kubecontrolnets" {
 }
 
 variable "nodetype" {
-  default = "SPOT"
+  default     = "SPOT"
   description = "make this be SPOT or ON_DEMAND"
 }
 
 variable "node_disk_size" {
-  default = 20
+  default     = 20
   description = "local disk size in GB for nodes"
 }
 
 variable "node_max_size" {
-  default = 14
+  default     = 14
   description = "maximum size for node group"
 }
 
 variable "node_instance_type" {
-  default = "t3a.large"
+  default     = "t3a.large"
   description = "instance type for nodes"
 }

@@ -1,3 +1,13 @@
+#
+# To use this, you will need to create users.  There's probably
+# a way to do this with code, but here is how you set it up:
+# 
+# aws-vault exec tooling-admin -- kubectl -n teleport exec --stdin --tty teleport-cluster-<whatever> /bin/bash
+# tctl users add tspencer --roles=editor,access,admin --logins=root,ubuntu
+#
+# Then, you can go to teleport-${var.cluster_name}.gitlab.identitysandbox.gov
+# and log in with your new creds
+#
 
 resource "kubernetes_namespace" "teleport" {
   metadata {
@@ -5,9 +15,37 @@ resource "kubernetes_namespace" "teleport" {
   }
 }
 
+data "aws_route53_zone" "gitlab" {
+  name = var.domain
+}
+
+data "kubernetes_service" "teleport" {
+  depends_on = [helm_release.teleport-cluster]
+  metadata {
+    name      = "teleport-cluster"
+    namespace = "teleport"
+  }
+}
+
+resource "aws_route53_record" "teleport" {
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "teleport-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
+}
+
+resource "aws_route53_record" "teleport-gitlab" {
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "gitlab.teleport-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
+}
+
 resource "helm_release" "teleport-cluster" {
   name       = "teleport-cluster"
-  repository = "https://charts.releases.teleport.dev" 
+  repository = "https://charts.releases.teleport.dev"
   chart      = "teleport-cluster"
   version    = "6.0.0"
   namespace  = "teleport"
@@ -44,7 +82,7 @@ resource "kubernetes_config_map" "teleport-cluster" {
   # depends_on = [helm_release.teleport-cluster]
   depends_on = [kubernetes_namespace.teleport]
   metadata {
-    name = "teleport-cluster"
+    name      = "teleport-cluster"
     namespace = "teleport"
   }
 
@@ -61,7 +99,7 @@ app_service:
   enabled: true
   apps:
     - name: gitlab
-      uri: "http://gitlab-webservice-default.gitlab:8181"
+      uri: "https://gitlab-webservice-default.gitlab:8181"
 kubernetes_service:
   enabled: true
   listen_addr: 0.0.0.0:3027
