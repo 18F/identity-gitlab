@@ -4,9 +4,19 @@
 #  * EC2 Security Group to allow networking traffic with EKS cluster
 #  * EKS Cluster
 #
+
+resource "aws_cloudwatch_log_group" "eks" {
+  # The log group name format is /aws/eks/<cluster-name>/cluster
+  # Reference: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
+  name              = "/aws/eks/${var.cluster_name}/cluster"
+  retention_in_days = 365
+}
+
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name
   role_arn = aws_iam_role.eks-cluster.arn
+  enabled_cluster_log_types = ["api","audit","authenticator","controllerManager","scheduler"]
+
 
   vpc_config {
     security_group_ids = [aws_security_group.eks-cluster.id]
@@ -22,6 +32,7 @@ resource "aws_eks_cluster" "eks" {
   depends_on = [
     aws_iam_role_policy_attachment.eks-cluster-AmazonEKSClusterPolicy,
     aws_iam_role_policy_attachment.eks-cluster-AmazonEKSServicePolicy,
+    aws_cloudwatch_log_group.eks,
   ]
 }
 
