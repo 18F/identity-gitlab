@@ -39,6 +39,7 @@ provider "kubernetes" {
 }
 
 # This is so we can do CRDs and arbitrary yaml
+# We would much rather use a later version, but we cannot because with tf 0.13, we cannot.
 provider "kubernetes-alpha" {
   version                = "~> 0.2.1"
   host                   = data.aws_eks_cluster.eks.endpoint
