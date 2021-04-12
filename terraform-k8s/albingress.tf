@@ -246,33 +246,6 @@ resource "kubernetes_manifest" "targetgroupbinding-crds" {
   manifest = yamldecode(file("${path.module}/alb-TargetGroupBinding-crds.yaml"))
 }
 
-# # XXX we may need this someday to map iam roles to RBAC stuff in k8s
-# resource "kubernetes_config_map" "aws_auth" {
-#   metadata {
-#     name = "aws-auth"
-#     namespace = "kube-system"
-#   }
-
-#   data = {
-#     mapRoles = <<EOF
-# - rolearn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.cluster_name}-noderole
-#   username: system:node:{{EC2PrivateDNSName}}
-#   groups:
-#     - system:bootstrappers
-#     - system:nodes
-# - rolearn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator
-#   username: admin
-#   groups:
-#     - system:masters
-# - rolearn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/SOCAdministrator
-#   username: soc
-#   groups:
-#     - view
-# EOF
-#   }
-# }
-
-
 resource "helm_release" "alb-ingress-controller" {
   name       = "aws-load-balancer-controller"
   repository = "https://aws.github.io/eks-charts"
