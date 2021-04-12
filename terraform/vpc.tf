@@ -13,6 +13,8 @@ resource "aws_vpc" "eks" {
     "Name", "${var.cluster_name}-vpc",
     "kubernetes.io/cluster/${var.cluster_name}", "shared",
   )
+  enable_dns_support   = true
+  enable_dns_hostnames = true  
 }
 
 resource "aws_subnet" "eks" {
@@ -53,4 +55,17 @@ resource "aws_route_table_association" "eks" {
 
   subnet_id      = aws_subnet.eks.*.id[count.index]
   route_table_id = aws_route_table.eks.id
+}
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = aws_vpc.eks.id
+  service_name        = "com.amazonaws.${var.region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids = [aws_security_group.eks-cluster.id]
+  subnet_ids         = aws_subnet.eks[*].id
+  private_dns_enabled = true
+
+  tags = {
+    Name = "k8s_ssm_agent"
+  }
 }
