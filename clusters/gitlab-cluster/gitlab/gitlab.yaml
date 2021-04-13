@@ -23,7 +23,7 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: gitlab
-        namespace: gitlab
+        namespace: flux-system
       interval: 1m
   values:
     global:
