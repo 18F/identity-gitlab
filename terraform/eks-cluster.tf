@@ -13,9 +13,9 @@ resource "aws_cloudwatch_log_group" "eks" {
 }
 
 resource "aws_eks_cluster" "eks" {
-  name     = var.cluster_name
-  role_arn = aws_iam_role.eks-cluster.arn
-  enabled_cluster_log_types = ["api","audit","authenticator","controllerManager","scheduler"]
+  name                      = var.cluster_name
+  role_arn                  = aws_iam_role.eks-cluster.arn
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
 
   vpc_config {
