@@ -33,8 +33,6 @@ resource "kubectl_manifest" "fluxcd-sync" {
   yaml_body = element(data.kubectl_file_documents.fluxcd-sync.documents, count.index)
 }
 
-
-
 # SSH
 locals {
   known_hosts = "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
@@ -57,5 +55,20 @@ resource "kubernetes_secret" "main" {
     identity       = tls_private_key.main.private_key_pem
     "identity.pub" = tls_private_key.main.public_key_pem
     known_hosts    = local.known_hosts
+  }
+}
+
+# This configmap is where we can pass stuff into flux/helm from terraform
+resource "kubernetes_config_map" "terraform-info" {
+  depends_on = [kubernetes_namespace.flux_system]
+  metadata {
+    name      = "terraform-info"
+    namespace = "kube-system"
+  }
+
+  data = {
+    "cluster_name" = var.cluster_name,
+    "domain" = var.domain,
+    "certmanager-issuer-email" = var.certmanager-issuer
   }
 }
