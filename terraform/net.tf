@@ -1,4 +1,4 @@
-resource "aws_security_group" "db" {
+resource "aws_security_group" "gitlab_db" {
   description = "Allow inbound and outbound postgresql traffic with app subnet in vpc"
 
   egress = []
@@ -8,7 +8,7 @@ resource "aws_security_group" "db" {
     to_port   = 5432
     protocol  = "tcp"
     security_groups = [
-      aws_security_group.gitlab.id,
+      aws_security_group.eks-cluster.id,
     ]
   }
 
@@ -20,5 +20,3 @@ resource "aws_security_group" "db" {
 
   vpc_id = aws_vpc.eks.id
 }
-
-

@@ -36,6 +36,32 @@ resource "helm_release" "gitlab" {
   }
 }
 
+resource "aws_iam_role" "rds-monitoring-role" {
+  name = "rds-monitoring-role"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "monitoring.rds.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+EOF
+
+}
+
+resource "aws_iam_role_policy_attachment" "rds-enhanced-monitoring" {
+  role       = aws_iam_role.rds-monitoring-role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonRDSEnhancedMonitoringRole"
+}
+
 resource "aws_db_subnet_group" "services" {
   name       = "services"
   subnet_ids = aws_subnet.services.*.id
@@ -119,9 +145,9 @@ resource "aws_db_instance" "gitlab" {
 
   # enhanced monitoring
   monitoring_interval = 60
-  monitoring_role_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.rds_monitoring_role_name}"
+  monitoring_role_arn = aws_iam_role.rds-monitoring-role.arn
 
-  vpc_security_group_ids = [aws_security_group.db.id]
+  vpc_security_group_ids = [aws_security_group.gitlab_db.id]
 
   # send logs to cloudwatch
   enabled_cloudwatch_logs_exports = ["postgresql", "upgrade"]
