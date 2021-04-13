@@ -11,7 +11,7 @@ resource "helm_release" "gitlab" {
   chart      = "gitlab"
   version    = "4.10.2"
   namespace  = "gitlab"
-  depends_on = [kubernetes_namespace.gitlab, helm_release.alb-ingress-controller]
+  depends_on = [kubernetes_namespace.gitlab]
 
   set {
     name  = "global.hosts.hostSuffix"

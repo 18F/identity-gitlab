@@ -236,38 +236,3 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
     }
   }
 }
-
-# from:
-#   kustomize build "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
-# which came from https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
-data "kubectl_file_documents" "albingress" {
-  content = file("${path.module}/alb-TargetGroupBinding-crds.yaml")
-}
-resource "kubectl_manifest" "albingress" {
-  count     = length(data.kubectl_file_documents.albingress.documents)
-  yaml_body = element(data.kubectl_file_documents.albingress.documents, count.index)
-}
-
-resource "helm_release" "alb-ingress-controller" {
-  name       = "aws-load-balancer-controller"
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-  version    = "1.1.6"
-  namespace  = "kube-system"
-  depends_on = [kubernetes_service_account.aws-load-balancer-controller]
-
-  set {
-    name  = "clusterName"
-    value = var.cluster_name
-  }
-
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller"
-  }
-}
