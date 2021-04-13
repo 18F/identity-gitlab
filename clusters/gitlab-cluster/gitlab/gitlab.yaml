@@ -18,7 +18,7 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: gitlab/gitlab
+      chart: gitlab
       version: "4.10.2"
       sourceRef:
         kind: HelmRepository
