@@ -6,7 +6,7 @@ resource "kubernetes_namespace" "gitlab" {
 }
 
 # This configmap is where we can pass stuff into flux/helm from terraform
-resource "kubernetes_config_map" "gitlab-terraform-info" {
+resource "kubernetes_config_map" "terraform-gitlab-info" {
   depends_on = [kubernetes_namespace.gitlab]
   metadata {
     name      = "terraform-gitlab-info"

@@ -57,18 +57,3 @@ resource "kubernetes_secret" "main" {
     known_hosts    = local.known_hosts
   }
 }
-
-# This configmap is where we can pass stuff into flux/helm from terraform
-resource "kubernetes_config_map" "terraform-info" {
-  depends_on = [kubernetes_namespace.flux_system]
-  metadata {
-    name      = "terraform-info"
-    namespace = "kube-system"
-  }
-
-  data = {
-    "cluster_name" = var.cluster_name,
-    "domain" = var.domain,
-    "certmanager-issuer-email" = var.certmanager-issuer
-  }
-}
