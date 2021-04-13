@@ -236,3 +236,15 @@ resource "kubernetes_service_account" "aws-load-balancer-controller" {
     }
   }
 }
+
+# This configmap is where we can pass stuff into flux/helm from terraform
+resource "kubernetes_config_map" "kube-system-terraform-info" {
+  metadata {
+    name      = "terraform-info"
+    namespace = "kube-system"
+  }
+
+  data = {
+    "cluster_name" = var.cluster_name
+  }
+}
