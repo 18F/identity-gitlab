@@ -8,7 +8,21 @@ provider "aws" {
 }
 
 terraform {
+  required_version = ">= 0.13"
   backend "s3" {
+  }
+  required_providers {
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+    }
+    flux = {
+      source  = "fluxcd/flux"
+      version = ">= 0.0.13"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "3.1.0"
+    }
   }
 }
 
@@ -39,7 +53,7 @@ provider "kubernetes" {
 }
 
 # This is so we can do CRDs and arbitrary yaml
-# We would much rather use a later version, but we cannot because with tf 0.13, we cannot.
+# XXX This needs to be removed once folks have terraformed this stuff away.
 provider "kubernetes-alpha" {
   version                = "~> 0.2.1"
   host                   = data.aws_eks_cluster.eks.endpoint
@@ -65,5 +79,21 @@ provider "helm" {
       args        = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
       env         = {}
     }
+  }
+}
+
+provider "flux" {}
+
+provider "kubectl" {
+  version                = ">= 1.10.0"
+  load_config_file       = false
+  # apply_retry_count      = 15
+  host                   = data.aws_eks_cluster.eks.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
+  exec {
+    api_version = "client.authentication.k8s.io/v1alpha1"
+    command     = "aws" # this is the actual 'aws' cli tool
+    args        = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
+    env         = {}
   }
 }
