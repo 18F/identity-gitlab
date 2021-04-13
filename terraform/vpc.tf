@@ -54,3 +54,17 @@ resource "aws_route_table_association" "eks" {
   subnet_id      = aws_subnet.eks.*.id[count.index]
   route_table_id = aws_route_table.eks.id
 }
+
+resource "aws_subnet" "services" {
+  count = 2
+
+  availability_zone = data.aws_availability_zones.available.names[count.index]
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, count.index + 2)
+  vpc_id            = aws_vpc.eks.id
+
+  tags = map(
+    "Name", "${var.cluster_name}-services${count.index}",
+  )
+}
+
+
