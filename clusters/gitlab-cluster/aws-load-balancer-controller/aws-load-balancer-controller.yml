@@ -31,6 +31,6 @@ spec:
       name: aws-load-balancer-controller
   valuesFrom:
     - kind: ConfigMap
-      name: terraform-info
+      name: terraform-alb-info
       valuesKey: cluster_name
       targetPath: clusterName

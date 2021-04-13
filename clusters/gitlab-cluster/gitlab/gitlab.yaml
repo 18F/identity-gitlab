@@ -31,14 +31,14 @@ spec:
         enabled: true
   valuesFrom:
     - kind: ConfigMap
-      name: terraform-info
+      name: terraform-gitlab-info
       valuesKey: cluster_name
       targetPath: clusterName
     - kind: ConfigMap
-      name: terraform-info
+      name: terraform-gitlab-info
       valuesKey: domain
       targetPath: global.hosts.domain
     - kind: ConfigMap
-      name: terraform-info
+      name: terraform-gitlab-info
       valuesKey: certmanager-issuer-email
       targetPath: certmanager-issuer.email

@@ -9,7 +9,7 @@ resource "kubernetes_namespace" "gitlab" {
 resource "kubernetes_config_map" "gitlab-terraform-info" {
   depends_on = [kubernetes_namespace.gitlab]
   metadata {
-    name      = "terraform-info"
+    name      = "terraform-gitlab-info"
     namespace = "gitlab"
   }
 
