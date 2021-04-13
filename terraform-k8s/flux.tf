@@ -1,15 +1,6 @@
-# from https://registry.terraform.io/providers/fluxcd/flux/latest/docs/guides/github
-
-# Flux
-data "flux_install" "main" {
-  target_path = "clusters/gitlab-cluster"
-}
-
-data "flux_sync" "main" {
-  target_path = "clusters/gitlab-cluster"
-  url         = "https://github.com/18F/identity-gitlab"
-  branch      = "main"
-}
+# it would be cool to use https://registry.terraform.io/providers/fluxcd/flux/latest/docs/guides/github,
+# but it fights with what we installed in our repo, and thus we are just going to bootstrap from the
+# repo directly.
 
 # Kubernetes
 resource "kubernetes_namespace" "flux_system" {
@@ -24,38 +15,25 @@ resource "kubernetes_namespace" "flux_system" {
   }
 }
 
-data "kubectl_file_documents" "install" {
-  content = data.flux_install.main.content
+data "kubectl_file_documents" "fluxcd" {
+  content = file("${path.module}/../clusters/gitlab-cluster/flux-system/gotk-components.yaml")
 }
-
-data "kubectl_file_documents" "sync" {
-  content = data.flux_sync.main.content
-}
-
-locals {
-  install = [for v in data.kubectl_file_documents.install.documents : {
-    data : yamldecode(v)
-    content : v
-    }
-  ]
-  sync = [for v in data.kubectl_file_documents.sync.documents : {
-    data : yamldecode(v)
-    content : v
-    }
-  ]
-}
-
-resource "kubectl_manifest" "install" {
-  for_each   = { for v in local.install : lower(join("/", compact([v.data.apiVersion, v.data.kind, lookup(v.data.metadata, "namespace", ""), v.data.metadata.name]))) => v.content }
+resource "kubectl_manifest" "fluxcd" {
   depends_on = [kubernetes_namespace.flux_system]
-  yaml_body  = each.value
+  count     = length(data.kubectl_file_documents.fluxcd.documents)
+  yaml_body = element(data.kubectl_file_documents.fluxcd.documents, count.index)
 }
 
-resource "kubectl_manifest" "sync" {
-  for_each   = { for v in local.sync : lower(join("/", compact([v.data.apiVersion, v.data.kind, lookup(v.data.metadata, "namespace", ""), v.data.metadata.name]))) => v.content }
-  depends_on = [kubernetes_namespace.flux_system]
-  yaml_body  = each.value
+data "kubectl_file_documents" "fluxcd-sync" {
+  content = file("${path.module}/../clusters/gitlab-cluster/flux-system/gotk-sync.yaml")
 }
+resource "kubectl_manifest" "fluxcd-sync" {
+  depends_on = [kubernetes_namespace.flux_system]
+  count     = length(data.kubectl_file_documents.fluxcd-sync.documents)
+  yaml_body = element(data.kubectl_file_documents.fluxcd-sync.documents, count.index)
+}
+
+
 
 # SSH
 locals {
@@ -68,11 +46,11 @@ resource "tls_private_key" "main" {
 }
 
 resource "kubernetes_secret" "main" {
-  depends_on = [kubectl_manifest.install]
+  depends_on = [kubernetes_namespace.flux_system]
 
   metadata {
-    name      = data.flux_sync.main.secret
-    namespace = data.flux_sync.main.namespace
+    name      = "flux-system"
+    namespace = "flux-system"
   }
 
   data = {
