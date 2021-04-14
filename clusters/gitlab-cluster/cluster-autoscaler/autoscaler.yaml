@@ -2,35 +2,38 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
-  name: eks-charts
+  name: autoscaler
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://aws.github.io/eks-charts
+  url: https://kubernetes.github.io/autoscaler
 
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: aws-load-balancer-controller
+  name: eksclusterautoscaler
   namespace: kube-system
 spec:
   interval: 5m
   chart:
     spec:
-      chart: aws-load-balancer-controller
-      version: "1.1.6"
+      chart: cluster-autoscaler
+      version: "9.9.2"
       sourceRef:
         kind: HelmRepository
-        name: eks-charts
+        name: autoscaler
         namespace: flux-system
       interval: 1m
   values:
-    serviceAccount:
-      create: false
-      name: aws-load-balancer-controller
+    extraArgs:
+      skip-nodes-with-system-pods: true
   valuesFrom:
     - kind: ConfigMap
       name: terraform-info
+      valuesKey: region
+      targetPath: awsRegion
+    - kind: ConfigMap
+      name: terraform-info
       valuesKey: cluster_name
-      targetPath: clusterName
+      targetPath: autoDiscovery.clusterName

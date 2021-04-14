@@ -6,4 +6,5 @@ resources:
 - ./aws-load-balancer-controller/
 - ./gitlab/
 - ./logging/
+- ./cluster-autoscaler/
 
