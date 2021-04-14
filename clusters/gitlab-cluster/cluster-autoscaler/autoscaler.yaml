@@ -1,0 +1,39 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: autoscaler
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://kubernetes.github.io/autoscaler
+
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: eksclusterautoscaler
+  namespace: kube-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: cluster-autoscaler
+      version: "9.9.2"
+      sourceRef:
+        kind: HelmRepository
+        name: autoscaler
+        namespace: flux-system
+      interval: 1m
+  values:
+    extraArgs:
+      skip-nodes-with-system-pods: true
+  valuesFrom:
+    - kind: ConfigMap
+      name: terraform-info
+      valuesKey: region
+      targetPath: awsRegion
+    - kind: ConfigMap
+      name: terraform-info
+      valuesKey: cluster_name
+      targetPath: autoDiscovery.clusterName

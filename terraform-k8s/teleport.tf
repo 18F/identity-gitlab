@@ -99,7 +99,7 @@ app_service:
   enabled: true
   apps:
     - name: gitlab
-      uri: "https://gitlab-webservice-default.gitlab:8181"
+      uri: "http://gitlab-webservice-default.gitlab:8181"
 kubernetes_service:
   enabled: true
   listen_addr: 0.0.0.0:3027

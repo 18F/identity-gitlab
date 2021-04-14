@@ -7,7 +7,7 @@ metadata:
 spec:
   interval: 1m0s
   ref:
-    branch: main
+    branch: tspencer/movealbtoflux
   secretRef:
     name: flux-system
   url: https://github.com/18F/identity-gitlab
@@ -18,7 +18,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 10m0s
+  interval: 2m0s
   path: ./clusters/gitlab-cluster
   prune: true
   sourceRef:
