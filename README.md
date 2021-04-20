@@ -42,5 +42,18 @@ You will also need to log into gitlab with the initial root password:
 - Log in as root and start configuring!
 - Longer term, we want to figure out how to configure this through code.
 
+### Gitlab git-ssh
+Right now, we need to access this via port-forwarding.
+- Edit your `~/.ssh/config` file and add this: ```
+Host gitlab
+  HostName localhost
+  Port 2222
+```
+- Run this command in a shell window.  It sets up a tunnel to the git-ssh port on the gitlab service: `kubectl port-forward service/gitlab-gitlab-shell 2222:22 -n gitlab`
+- Git clone with a command like this:  `git clone git@gitlab:root/reponame.git`  The important thing is the hostname, which is `gitlab`, which refers to the `Host` entry that you made above in your ssh config file.
+- Boom!  You have cloned the repo!!  You should be able to git push/pull/etc
+  through this too.  If ever the port-forward dies, you will be unable to access
+  gitlab, so restart it if you need to.
+  
 
 Have fun!!
