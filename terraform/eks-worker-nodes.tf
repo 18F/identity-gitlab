@@ -26,6 +26,7 @@ resource "aws_eks_node_group" "eks" {
 
   depends_on = [
     aws_iam_role_policy_attachment.eks-node-AmazonEKSWorkerNodePolicy,
+    aws_iam_role_policy_attachment.eks-node-AmazonSSMManagedInstanceCore,
     aws_iam_role_policy_attachment.eks-node-AmazonEKS_CNI_Policy,
     aws_iam_role_policy_attachment.eks-node-AmazonEC2ContainerRegistryReadOnly
   ]
@@ -48,6 +49,11 @@ resource "aws_iam_role" "eks-node" {
   ]
 }
 POLICY
+}
+
+resource "aws_iam_role_policy_attachment" "eks-node-AmazonSSMManagedInstanceCore" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  role       = aws_iam_role.eks-node.name
 }
 
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
