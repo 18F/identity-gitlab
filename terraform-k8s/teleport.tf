@@ -91,7 +91,8 @@ resource "kubernetes_config_map" "teleport-cluster" {
 teleport:
   log:
     severity: ERROR
-    output: stderr
+    output: stdout
+    format: [level, component, caller]
 auth_service:
   enabled: true
   cluster_name: teleport-${var.cluster_name}.${var.domain}

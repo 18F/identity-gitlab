@@ -43,6 +43,8 @@ resource "tls_private_key" "main" {
   rsa_bits  = 4096
 }
 
+# This key is so you can pull the public key out and plug it
+# into a repo as a read-only deploy key.
 resource "kubernetes_secret" "main" {
   depends_on = [kubernetes_namespace.flux_system]
 

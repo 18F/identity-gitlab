@@ -19,4 +19,28 @@ latest changes you have there in your repo.
 
 `aws-vault exec sandbox-admin -- ./destroy.sh gitlab-dev`
 
+If it asks you for oidc stuff, just give it random stuff.
+That will go away once we go back to a single tf run.
+
+Also, some namespaces won't delete right off.  You will need to
+follow the procedure in here to make them actually go away:
+https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
+
+## Further Setup
+
+### Teleport
+To get access, you will need to configure teleport.
+- Add yourself as a user: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add yourusername --roles=editor,access,admin --logins=root,ubuntu,ec2-user`
+- Go to the URL they give you and set up your 2fa
+- You should then be able to go to the applications section and pull up gitlab.
+- Longer term, we hope to configure more of this through code.
+
+
+### Gitlab
+You will also need to log into gitlab with the initial root password:
+- Get the password using `kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' -n gitlab | base64 --decode ; echo`
+- Log in as root and start configuring!
+- Longer term, we want to figure out how to configure this through code.
+
+
 Have fun!!
