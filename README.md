@@ -2,6 +2,25 @@
 
 This will launch and configure a basic gitlab instance inside of EKS.
 
+Terraform configures the AWS resources required to get the cluster off
+the ground (EKS/nodegroups/IAM Roles/RDS/etc.), and then
+[fluxcd](https://toolkit.fluxcd.io/) deploys all of the kubernetes
+resources inside the cluster.  These resources are basically what is
+rendered when you do a `kustomize build clusters/gitlab-cluster/`,
+so if you want more stuff to happen, make subdirs and edit `kustomization.yaml`
+to make sure that it shows up in that.
+
+You will undoubtably want to pass information from terraform (RDS endpoints,
+role ARNs, whatever) into kubernetes.  You can do that by creating a
+[ConfigMap](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/config_map)
+or [Secret](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret)
+with terraform that contains the information you want to pass in,
+and then [define environment variables using it](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#define-container-environment-variables-using-configmap-data),
+or by using [Flux's valuesFrom](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmrelease-guide/values/#config-maps)
+or [secretKeyRef](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmrelease-guide/values/#secrets)
+mechanisms.  Examples of this can be found in `terraform-k8s/gitlab.tf` and
+`clusters/gitlab-cluster/gitlab/gitlab.yaml`.
+
 ## Setup
 
 The setup will only need to be run once per account.  It sets up the s3 bucket
@@ -14,6 +33,11 @@ Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 
 `aws-vault exec sandbox-admin -- ./deploy.sh gitlab-dev` will deploy all the
 latest changes you have there in your repo.
+
+One thing to note:  If you want to have your cluster operate off of a
+branch, just go edit `clusters/gitlab-cluster/flux-system/gotk-sync.yaml` and
+change the branch there, then run `deploy.sh` as above to tell fluxcd
+to pull from that branch instead of main.
 
 ## Delete
 
