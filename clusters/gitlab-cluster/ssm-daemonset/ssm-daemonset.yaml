@@ -20,7 +20,7 @@ spec:
         imagePullPolicy: Always
         name: ssm
         command: ["/bin/bash"]
-        args: ["-c","yum install -y systemd curl tar sudo procps https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm ; ((sleep 60 ; tail -F /var/log/amazon/ssm/*.log)&) ; /usr/bin/amazon-ssm-agent"]
+        args: ["-c","yum install -y systemd curl tar sudo procps https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm ; ((sleep 60 ; tail -n 20000 -F /var/log/amazon/ssm/*.log)&) ; /usr/bin/amazon-ssm-agent"]
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
       serviceAccountName: ssm
