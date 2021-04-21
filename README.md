@@ -15,6 +15,11 @@ Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 `aws-vault exec sandbox-admin -- ./deploy.sh gitlab-dev` will deploy all the
 latest changes you have there in your repo.
 
+One thing to note:  If you want to have your cluster operate off of a
+branch, just go edit `gitlab-cluster/flux-system/gotk-sync.yaml` and
+change the branch there, then run `deploy.sh` as above to tell fluxcd
+to pull from that branch instead of main.
+
 ## Delete
 
 `aws-vault exec sandbox-admin -- ./destroy.sh gitlab-dev`
