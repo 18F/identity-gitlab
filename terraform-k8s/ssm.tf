@@ -1,4 +1,4 @@
-# map SSM role to ssm serviceaccount
+# map SSM policy and role to ssm serviceaccount
 
 resource "kubernetes_namespace" "ssm" {
   metadata {
@@ -30,7 +30,8 @@ resource "aws_iam_role" "ssm" {
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "${var.oidc_url}:sub": "system:serviceaccount:ssm:ssm"
+          "${var.oidc_url}:sub": "system:serviceaccount:ssm:ssm",
+          "${var.oidc_url}:aud": "sts.amazonaws.com"
         }
       }
     }
