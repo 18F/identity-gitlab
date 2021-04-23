@@ -7,4 +7,5 @@ resources:
 - ./gitlab/
 - ./logging/
 - ./cluster-autoscaler/
+- ./teleport/
 
