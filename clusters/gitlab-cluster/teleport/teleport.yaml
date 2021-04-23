@@ -28,6 +28,9 @@ spec:
   values:
     namespace: teleport
     roles: kube,app
+    logLevel: DEBUG
+    clusterRoleName: teleport-impersonation
+    clusterRoleBinding: teleport-crb
     # apps[0].name: "gitlab"
     # apps[0].uri: "http://gitlab-webservice-default.gitlab:8181"
     apps:
