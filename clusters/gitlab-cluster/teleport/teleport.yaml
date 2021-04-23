@@ -28,8 +28,11 @@ spec:
   values:
     namespace: teleport
     roles: kube,app
-    apps[0].name: "gitlab"
-    apps[0].uri: "http://gitlab-webservice-default.gitlab:8181"
+    # apps[0].name: "gitlab"
+    # apps[0].uri: "http://gitlab-webservice-default.gitlab:8181"
+    # apps:
+    #   - name: "gitlab"
+    #     uri: "http://gitlab-webservice-default.gitlab:8181"
   valuesFrom:
     - kind: ConfigMap
       name: terraform-teleport-info
