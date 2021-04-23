@@ -30,12 +30,9 @@ spec:
     roles: kube
     apps[0].name: "gitlab"
     apps[0].uri: "http://gitlab-webservice-default.gitlab:8181"
+    kubeClusterName: "k8s"
   valuesFrom:
     - kind: ConfigMap
       name: terraform-teleport-info
       valuesKey: clusterName
       targetPath: proxyAddr
-    - kind: ConfigMap
-      name: terraform-teleport-info
-      valuesKey: kubeClusterName
-      targetPath: kubeClusterName
