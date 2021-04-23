@@ -1,0 +1,41 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: teleport
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://charts.releases.teleport.dev
+
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: teleport-kube-agent
+  namespace: teleport
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: teleport-kube-agent
+      version: "0.0.4"
+      sourceRef:
+        kind: HelmRepository
+        name: teleport
+        namespace: flux-system
+      interval: 1m
+  values:
+    namespace: teleport
+    roles: kube
+    apps[0].name: "gitlab"
+    apps[0].uri: "http://gitlab-webservice-default.gitlab:8181"
+  valuesFrom:
+    - kind: ConfigMap
+      name: terraform-teleport-info
+      valuesKey: clusterName
+      targetPath: proxyAddr
+    - kind: ConfigMap
+      name: terraform-teleport-info
+      valuesKey: kubeClusterName
+      targetPath: kubeClusterName

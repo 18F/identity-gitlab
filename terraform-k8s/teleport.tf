@@ -43,13 +43,53 @@ resource "aws_route53_record" "teleport-gitlab" {
   records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
 }
 
+# This configmap is where we can pass stuff into flux/helm from terraform
+resource "kubernetes_config_map" "terraform-teleport-info" {
+  depends_on = [kubernetes_namespace.teleport]
+  metadata {
+    name      = "terraform-teleport-info"
+    namespace = "teleport"
+  }
+
+  data = {
+    "clusterName" = "teleport-${var.cluster_name}.${var.domain}",
+    "acmeEmail" = var.certmanager-issuer,
+    "kubeClusterName" = "teleport-${var.cluster_name}"
+  }
+}
+
+# This is the join token
+resource "random_password" "join-token" {
+  length           = 26
+  special          = true
+  override_special = "/@£$"
+}
+
+resource "kubernetes_secret" "teleport-kube-agent-join-token" {
+  depends_on = [kubernetes_namespace.teleport]
+  metadata {
+    name = "teleport-kube-agent-join-token"
+    namespace = "teleport"
+  }
+
+  data = {
+    auth-token = random_password.join-token.result
+  }
+}
+
+# Ideally, this would be done through flux, but we need it to be live
+# so we can reference the service to get the elb to put the CNAMEs on.
+#
+# Note:  there is a teleport-kube-agent helm release set up in flux
+#        that should add kubernetes and the gitlab app in.  So the teleport
+#        config is in _two_ places.
 resource "helm_release" "teleport-cluster" {
   name       = "teleport-cluster"
   repository = "https://charts.releases.teleport.dev"
   chart      = "teleport-cluster"
   version    = "6.0.0"
   namespace  = "teleport"
-  depends_on = [kubernetes_namespace.teleport]
+   depends_on = [kubernetes_namespace.teleport, kubernetes_secret.teleport-kube-agent-join-token]
 
   set {
     name  = "namespace"
@@ -63,57 +103,11 @@ resource "helm_release" "teleport-cluster" {
 
   set {
     name  = "acmeEmail"
-    value = "security@login.gov"
-  }
-
+    value = var.certmanager-issuer
+   }
+ 
   set {
     name  = "clusterName"
     value = "teleport-${var.cluster_name}.${var.domain}"
-  }
-
-  set {
-    name  = "customConfig"
-    value = "true"
-  }
-}
-
-# This is where the customConfig lives (same name as the helm release)
-resource "kubernetes_config_map" "teleport-cluster" {
-  # depends_on = [helm_release.teleport-cluster]
-  depends_on = [kubernetes_namespace.teleport]
-  metadata {
-    name      = "teleport-cluster"
-    namespace = "teleport"
-  }
-
-  data = {
-    "teleport.yaml" = <<CUSTOMCONFIG
-teleport:
-  log:
-    severity: ERROR
-    output: stdout
-    format: [level, component, caller]
-auth_service:
-  enabled: true
-  cluster_name: teleport-${var.cluster_name}.${var.domain}
-app_service:
-  enabled: true
-  apps:
-    - name: gitlab
-      uri: "http://gitlab-webservice-default.gitlab:8181"
-kubernetes_service:
-  enabled: true
-  listen_addr: 0.0.0.0:3027
-proxy_service:
-  enabled: true
-  public_addr: 'teleport-${var.cluster_name}.${var.domain}:443'
-  kube_listen_addr: 0.0.0.0:3026
-  acme:
-    enabled: true
-    email: ${var.certmanager-issuer}
-ssh_service:
-  enabled: false
-
-CUSTOMCONFIG
-  }
-}
+   }
+ }
