@@ -111,3 +111,4 @@ resource "helm_release" "teleport-cluster" {
     value = "teleport-${var.cluster_name}.${var.domain}"
    }
  }
+ 
