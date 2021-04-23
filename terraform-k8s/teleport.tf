@@ -54,7 +54,8 @@ resource "kubernetes_config_map" "terraform-teleport-info" {
   data = {
     "clusterName" = "teleport-${var.cluster_name}.${var.domain}",
     "acmeEmail" = var.certmanager-issuer,
-    "kubeClusterName" = "teleport-${var.cluster_name}"
+    "kubeClusterName" = "teleport-${var.cluster_name}",
+    "rolearn" = aws_iam_role.teleport.arn
   }
 }
 
@@ -111,4 +112,71 @@ resource "helm_release" "teleport-cluster" {
     value = "teleport-${var.cluster_name}.${var.domain}"
    }
  }
- 
+
+# set things up for the serviceaccount to have proper perms
+# resource "null_resource" "annotate-teleport-serviceaccount" {
+#   depends_on = [kubectl_manifest.fluxcd-sync]
+#   provisioner "local-exec" {
+#     interpreter = ["/bin/bash", "-c"]
+#     command = <<EOT
+#       kubectl annotate serviceaccount teleport-kube-agent -n teleport eks.amazonaws.com/role-arn=${aws_iam_role.teleport.arn}"
+#     EOT
+#   }
+# }
+
+
+# resource "kubernetes_service_account" "teleport-kube-agent" {
+#   metadata {
+#     name = "teleport-kube-agent"
+#     namespace = "teleport"
+#     annotations = {
+#       "eks.amazonaws.com/role-arn" = aws_iam_role.teleport.arn
+#     }
+#   }
+# }
+
+resource "aws_iam_role" "teleport" {
+  name               = "${var.cluster_name}-teleport"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${var.oidc_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "${var.oidc_url}:sub": "system:serviceaccount:teleport:teleport-kube-agent"
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "teleport" {
+  name = "${var.cluster_name}-teleport-policy"
+  role = aws_iam_role.teleport.id
+
+  # This came from https://goteleport.com/docs/aws-oss-guide/#create-iam-policy-granting-list-clusters-and-describe-cluster-permissions-optional
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "ListDescribeClusters",
+            "Effect": "Allow",
+            "Action": [
+                "eks:DescribeCluster",
+                "eks:ListClusters"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+EOF
+}

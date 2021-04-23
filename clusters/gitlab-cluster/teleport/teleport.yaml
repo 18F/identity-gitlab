@@ -29,8 +29,6 @@ spec:
     namespace: teleport
     roles: kube,app
     logLevel: DEBUG
-    clusterRoleName: teleport-impersonation
-    clusterRoleBinding: teleport-crb
     # apps[0].name: "gitlab"
     # apps[0].uri: "http://gitlab-webservice-default.gitlab:8181"
     apps:
@@ -45,43 +43,13 @@ spec:
       name: terraform-teleport-info
       valuesKey: kubeClusterName
       targetPath: kubeClusterName
-
----
-# taken from https://goteleport.com/docs/aws-oss-guide/#create-cluster-role-and-role-binding
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: teleport-impersonation
-rules:
-- apiGroups:
-  - ""
-  resources:
-  - users
-  - groups
-  - serviceaccounts
-  verbs:
-  - impersonate
-- apiGroups:
-  - ""
-  resources:
-  - pods
-  verbs:
-  - get
-- apiGroups:
-  - "authorization.k8s.io"
-  resources:
-  - selfsubjectaccessreviews
-  verbs:
-  - create
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: teleport-crb
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: teleport-impersonation
-subjects:
-- kind: Group
-  name: teleport-group
+  postRenderers:
+  - kustomize: 
+       patchesStrategicMerge:
+       -  kind: ServiceAccount
+          apiVersion: v1
+          metadata:
+            name: teleport-kube-agent
+            namespace: teleport
+          annotations:
+            eks.amazonaws.com/role-arn: $(ConfigMap.terraform-teleport-info.data.rolearn)
