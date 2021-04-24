@@ -43,22 +43,6 @@ resource "aws_route53_record" "teleport-gitlab" {
   records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
 }
 
-# This configmap is where we can pass stuff into flux/helm from terraform
-resource "kubernetes_config_map" "terraform-teleport-info" {
-  depends_on = [kubernetes_namespace.teleport]
-  metadata {
-    name      = "terraform-teleport-info"
-    namespace = "teleport"
-  }
-
-  data = {
-    "clusterName" = "teleport-${var.cluster_name}.${var.domain}",
-    "acmeEmail" = var.certmanager-issuer,
-    "kubeClusterName" = "teleport-${var.cluster_name}",
-    "rolearn" = aws_iam_role.teleport.arn
-  }
-}
-
 # This is the join token
 resource "random_password" "join-token" {
   length           = 26
@@ -80,10 +64,6 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
 
 # Ideally, this would be done through flux, but we need it to be live
 # so we can reference the service to get the elb to put the CNAMEs on.
-#
-# Note:  there is a teleport-kube-agent helm release set up in flux
-#        that should add kubernetes and the gitlab app in.  So the teleport
-#        config is in _two_ places.
 resource "helm_release" "teleport-cluster" {
   name       = "teleport-cluster"
   repository = "https://charts.releases.teleport.dev"
@@ -113,28 +93,58 @@ resource "helm_release" "teleport-cluster" {
    }
  }
 
+resource "helm_release" "teleport-kube-agent" {
+  name       = "teleport-kube-agent"
+  repository = "https://charts.releases.teleport.dev"
+  chart      = "teleport-kube-agent"
+  version    = "0.0.4"
+  namespace  = "teleport"
+  depends_on = [helm_release.teleport-cluster, kubernetes_secret.teleport-kube-agent-join-token]
+
+  set {
+    name  = "namespace"
+    value = "teleport"
+  }
+
+  set {
+    name  = "roles"
+    value = "kube,app"
+  }
+
+  # XXX temporary
+  set {
+    name  = "logLevel"
+    value = "DEBUG"
+  }
+
+  set {
+    name  = "proxyAddr"
+    value = "teleport-${var.cluster_name}.${var.domain}"
+  }
+
+  set {
+    name  = "kubeClusterName"
+    value = "teleport-${var.cluster_name}"
+  }
+
+  set {
+    name  = "apps[0].name"
+    value = "gitlab"
+  }
+
+  set {
+    name  = "apps[0].uri"
+    value = "http://gitlab-webservice-default.gitlab:8181"
+  }
+
+  set {
+    name  = "serviceAccountAnnotations.eks\.amazonaws\.com/role-arn"
+    value = aws_iam_role.teleport.arn
+  }
+}
+
+
 # set things up for the serviceaccount to have proper perms
-# resource "null_resource" "annotate-teleport-serviceaccount" {
-#   depends_on = [kubectl_manifest.fluxcd-sync]
-#   provisioner "local-exec" {
-#     interpreter = ["/bin/bash", "-c"]
-#     command = <<EOT
-#       kubectl annotate serviceaccount teleport-kube-agent -n teleport eks.amazonaws.com/role-arn=${aws_iam_role.teleport.arn}"
-#     EOT
-#   }
-# }
-
-
-# resource "kubernetes_service_account" "teleport-kube-agent" {
-#   metadata {
-#     name = "teleport-kube-agent"
-#     namespace = "teleport"
-#     annotations = {
-#       "eks.amazonaws.com/role-arn" = aws_iam_role.teleport.arn
-#     }
-#   }
-# }
-
 resource "aws_iam_role" "teleport" {
   name               = "${var.cluster_name}-teleport"
   assume_role_policy = <<POLICY
