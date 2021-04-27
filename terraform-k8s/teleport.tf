@@ -219,10 +219,10 @@ EOF
 # can pass in the cluster name.
 resource "kubernetes_config_map" "example" {
   metadata {
-    name = "teleport-ssh-config"
-    namespace = teleport
+    name      = "teleport-ssh-config"
+    namespace = "teleport"
   }
   data = {
-    "teleport.yaml" = templatefile("${path.module}/teleport-ssh-config.yaml.tpl", {clusterName = "teleport-${var.cluster_name}.${var.domain}")
+    "teleport.yaml" = templatefile("${path.module}/teleport-ssh-config.yaml.tpl", { clusterName = "teleport-${var.cluster_name}.${var.domain}" })
   }
 }
