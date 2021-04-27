@@ -66,12 +66,15 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
 # so we can reference the service to get the elb to put the CNAMEs on.
 resource "helm_release" "teleport-cluster" {
   name       = "teleport-cluster"
+  # XXX remove the tspencer repo and add teleport back once these PRs get in:
+  #  https://github.com/gravitational/teleport/pull/6586
+  #  https://github.com/gravitational/teleport/pull/6619
   # repository = "https://charts.releases.teleport.dev"
   repository = "https://timothy-spencer.github.io/helm-charts"
   chart      = "teleport-cluster"
   version    = "6.0.0"
   namespace  = "teleport"
-   depends_on = [kubernetes_namespace.teleport, kubernetes_secret.teleport-kube-agent-join-token]
+   depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
 
   set {
     name  = "namespace"
@@ -83,11 +86,11 @@ resource "helm_release" "teleport-cluster" {
     value = "true"
   }
 
-  # XXX temporary
-  set {
-    name  = "logLevel"
-    value = "DEBUG"
-  }
+  # # XXX temporary
+  # set {
+  #   name  = "logLevel"
+  #   value = "DEBUG"
+  # }
 
   set {
     name  = "acmeEmail"
@@ -110,53 +113,56 @@ resource "helm_release" "teleport-cluster" {
   }
  }
 
-# resource "helm_release" "teleport-kube-agent" {
-#   name       = "teleport-kube-agent"
-#   # repository = "https://charts.releases.teleport.dev"
-#   repository = "https://timothy-spencer.github.io/helm-charts"
-#   chart      = "teleport-kube-agent"
-#   version    = "0.0.4"
-#   namespace  = "teleport"
-#   # XXX temporary
-#   wait       = false
-#   depends_on = [helm_release.teleport-cluster, kubernetes_secret.teleport-kube-agent-join-token]
+resource "helm_release" "teleport-kube-agent" {
+  name       = "teleport-kube-agent"
+  # XXX remove the tspencer repo and add teleport back once these PRs get in:
+  #  https://github.com/gravitational/teleport/pull/6586
+  #  https://github.com/gravitational/teleport/pull/6619
+  # repository = "https://charts.releases.teleport.dev"
+  repository = "https://timothy-spencer.github.io/helm-charts"
+  chart      = "teleport-kube-agent"
+  version    = "0.0.4"
+  namespace  = "teleport"
+  # XXX temporary
+  wait       = false
+  depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
 
-#   set {
-#     name  = "namespace"
-#     value = "teleport"
-#   }
+  set {
+    name  = "namespace"
+    value = "teleport"
+  }
 
-#   set {
-#     name  = "roles"
-#     value = "app"
-#   }
+  set {
+    name  = "roles"
+    value = "app"
+  }
 
-#   # XXX temporary
-#   set {
-#     name  = "logLevel"
-#     value = "DEBUG"
-#   }
+  # # XXX temporary
+  # set {
+  #   name  = "logLevel"
+  #   value = "DEBUG"
+  # }
 
-#   set {
-#     name  = "proxyAddr"
-#     value = "teleport-${var.cluster_name}.${var.domain}:3025"
-#   }
+  set {
+    name  = "proxyAddr"
+    value = "teleport-${var.cluster_name}.${var.domain}:443"
+  }
 
-#   set {
-#     name  = "apps[0].name"
-#     value = "gitlab"
-#   }
+  set {
+    name  = "apps[0].name"
+    value = "gitlab"
+  }
 
-#   set {
-#     name  = "apps[0].uri"
-#     value = "http://gitlab-webservice-default.gitlab:8181"
-#   }
+  set {
+    name  = "apps[0].uri"
+    value = "http://gitlab-webservice-default.gitlab:8181"
+  }
 
-#   set {
-#     name  = "serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
-#     value = aws_iam_role.teleport.arn
-#   }
-# }
+  set {
+    name  = "serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
+    value = aws_iam_role.teleport.arn
+  }
+}
 
 
 # set things up for the serviceaccount to have proper perms
