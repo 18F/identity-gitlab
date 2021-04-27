@@ -53,7 +53,7 @@ resource "random_password" "join-token" {
 resource "kubernetes_secret" "teleport-kube-agent-join-token" {
   depends_on = [kubernetes_namespace.teleport]
   metadata {
-    name = "teleport-kube-agent-join-token"
+    name      = "teleport-kube-agent-join-token"
     namespace = "teleport"
   }
 
@@ -65,7 +65,7 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
 # Ideally, this would be done through flux, but we need it to be live
 # so we can reference the service to get the elb to put the CNAMEs on.
 resource "helm_release" "teleport-cluster" {
-  name       = "teleport-cluster"
+  name = "teleport-cluster"
   # XXX remove the tspencer repo and add teleport back once these PRs get in:
   #  https://github.com/gravitational/teleport/pull/6586
   #  https://github.com/gravitational/teleport/pull/6619
@@ -74,7 +74,7 @@ resource "helm_release" "teleport-cluster" {
   chart      = "teleport-cluster"
   version    = "6.0.0"
   namespace  = "teleport"
-   depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
+  depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
 
   set {
     name  = "namespace"
@@ -96,7 +96,7 @@ resource "helm_release" "teleport-cluster" {
     name  = "acmeEmail"
     value = var.certmanager-issuer
   }
- 
+
   set {
     name  = "clusterName"
     value = "teleport-${var.cluster_name}.${var.domain}"
@@ -107,14 +107,14 @@ resource "helm_release" "teleport-cluster" {
     value = "teleport-${var.cluster_name}"
   }
 
- set {
+  set {
     name  = "serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.teleport.arn
   }
- }
+}
 
 resource "helm_release" "teleport-kube-agent" {
-  name       = "teleport-kube-agent"
+  name = "teleport-kube-agent"
   # XXX remove the tspencer repo and add teleport back once these PRs get in:
   #  https://github.com/gravitational/teleport/pull/6586
   #  https://github.com/gravitational/teleport/pull/6619

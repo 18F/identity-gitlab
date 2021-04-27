@@ -246,6 +246,6 @@ resource "kubernetes_config_map" "terraform-info" {
 
   data = {
     "cluster_name" = var.cluster_name,
-    "region" = var.region
+    "region"       = var.region
   }
 }

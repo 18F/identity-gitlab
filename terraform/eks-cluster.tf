@@ -19,8 +19,10 @@ resource "aws_eks_cluster" "eks" {
 
 
   vpc_config {
-    security_group_ids = [aws_security_group.eks-cluster.id]
-    subnet_ids         = aws_subnet.eks[*].id
+    security_group_ids      = [aws_security_group.eks-cluster.id]
+    subnet_ids              = aws_subnet.eks[*].id
+    endpoint_public_access  = var.k8s_public_api
+    endpoint_private_access = true
   }
 
   lifecycle {

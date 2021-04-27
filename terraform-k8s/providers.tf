@@ -13,7 +13,7 @@ terraform {
   }
   required_providers {
     kubectl = {
-      source  = "gavinbunney/kubectl"
+      source = "gavinbunney/kubectl"
     }
     flux = {
       source  = "fluxcd/flux"
@@ -85,8 +85,8 @@ provider "helm" {
 provider "flux" {}
 
 provider "kubectl" {
-  version                = ">= 1.10.0"
-  load_config_file       = false
+  version          = ">= 1.10.0"
+  load_config_file = false
   # apply_retry_count      = 15
   host                   = data.aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
