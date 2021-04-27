@@ -54,6 +54,7 @@ spec:
         args: 
           - -c
           - |
+            yum install -y yum-utils ;
             yum-config-manager --add-repo https://rpm.releases.teleport.dev/teleport.repo ;
             yum -y install teleport nc ;
             teleport start --roles=node -c /etc/teleport/teleport.yaml
