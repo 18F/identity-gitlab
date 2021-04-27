@@ -31,7 +31,7 @@ data:
 
 ---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   labels:
     k8s-app: tshnode
