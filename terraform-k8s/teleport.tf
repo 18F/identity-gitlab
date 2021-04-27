@@ -86,11 +86,11 @@ resource "helm_release" "teleport-cluster" {
     value = "true"
   }
 
-  # # XXX temporary
-  # set {
-  #   name  = "logLevel"
-  #   value = "DEBUG"
-  # }
+  # XXX temporary
+  set {
+    name  = "logLevel"
+    value = "DEBUG"
+  }
 
   set {
     name  = "acmeEmail"
