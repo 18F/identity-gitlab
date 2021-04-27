@@ -1,35 +1,4 @@
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: teleport-ssh-config
-  namespace: teleport
-data:
-  teleport.yaml: |
-    teleport:
-      auth_token: "/etc/teleport-secrets/auth-token"
-      auth_servers: ["teleport-cluster.teleport:443"]
-      log:
-        severity: INFO
-        output: stderr
-    ssh_service:
-      enabled: "yes"
-      commands:
-      - name: git-ssh
-        command: [nc , gitlab-gitlab-shell, 22]
-
-    kubernetes_service:
-      enabled: false
-    app_service:
-      enabled: false
-    db_service:
-      enabled: false
-    auth_service:
-      enabled: false
-    proxy_service:
-      enabled: false
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
