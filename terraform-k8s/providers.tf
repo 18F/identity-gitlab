@@ -52,21 +52,6 @@ provider "kubernetes" {
   }
 }
 
-# # This is so we can do CRDs and arbitrary yaml
-# # XXX This needs to be removed once folks have terraformed this stuff away.
-# provider "kubernetes-alpha" {
-#   version                = "~> 0.2.1"
-#   host                   = data.aws_eks_cluster.eks.endpoint
-#   cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-
-#   exec = {
-#     api_version = "client.authentication.k8s.io/v1alpha1"
-#     command     = "aws" # this is the actual 'aws' cli tool
-#     args        = ["--region", var.region, "eks", "get-token", "--cluster-name", var.cluster_name]
-#     env         = {}
-#   }
-# }
-
 # This is so we can install helm stuff
 provider "helm" {
   version = "~> 2.1.0"
@@ -81,8 +66,6 @@ provider "helm" {
     }
   }
 }
-
-provider "flux" {}
 
 provider "kubectl" {
   version          = ">= 1.10.0"

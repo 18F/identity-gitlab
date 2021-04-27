@@ -44,5 +44,5 @@ variable "node_instance_type" {
 
 variable "k8s_public_api" {
   default     = true
-  description = "enable the public k8s API.  Needs to be true to bootstrap."
+  description = "enable the public k8s API.  XXX cannot actually set this to false because the kubernetes/helm providers have to be able to work"
 }

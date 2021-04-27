@@ -1,4 +1,35 @@
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: teleport-ssh-config
+  namespace: teleport
+data:
+  teleport.yaml: |
+    teleport:
+      auth_token: "/etc/teleport-secrets/auth-token"
+      auth_servers: ["teleport-cluster.teleport:443"]
+      log:
+        severity: INFO
+        output: stderr
+    ssh_service:
+      enabled: "yes"
+      commands:
+      - name: git-ssh
+        command: [nc , gitlab-gitlab-shell, 22]
+
+    kubernetes_service:
+      enabled: false
+    app_service:
+      enabled: false
+    db_service:
+      enabled: false
+    auth_service:
+      enabled: false
+    proxy_service:
+      enabled: false
+
+---
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -24,11 +55,25 @@ spec:
           - -c
           - |
             yum-config-manager --add-repo https://rpm.releases.teleport.dev/teleport.repo ;
-            yum install teleport ;
-            teleport start --roles=node --token=XXX --auth-server=teleport-cluster.teleport:443
+            yum install teleport nc ;
+            teleport start --roles=node -c /etc/teleport/teleport.yaml
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/teleport-secrets
+          name: "auth-token"
+          readOnly: true
+        - mountPath: /etc/teleport
+          name: "config"
+          readOnly: true
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       terminationGracePeriodSeconds: 2
+      volumes:
+      - name: "auth-token"
+        secret:
+          secretName: teleport-kube-agent-join-token
+      - name: "config"
+        configMap:
+          name: teleport-ssh-config
