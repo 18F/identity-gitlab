@@ -6,4 +6,4 @@ resources:
 - ./gitlab/
 - ./logging/
 - ./cluster-autoscaler/
-# - ./tshnode/
+- ./tshnode/
