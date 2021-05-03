@@ -3,7 +3,7 @@
 # a way to do this with code, but here is how you set it up:
 # 
 # aws-vault exec tooling-admin -- kubectl -n teleport exec --stdin --tty teleport-cluster-<whatever> /bin/bash
-# tctl users add tspencer --roles=editor,access,admin --logins=root,ubuntu
+# tctl users add tspencer --roles=editor,access,admin --logins=root
 #
 # Then, you can go to teleport-${var.cluster_name}.gitlab.identitysandbox.gov
 # and log in with your new creds
@@ -86,11 +86,15 @@ resource "helm_release" "teleport-cluster" {
     value = "true"
   }
 
-  # XXX temporary
-  set {
-    name  = "logLevel"
-    value = "DEBUG"
-  }
+  # # XXX temporary
+  # set {
+  #   name  = "logLevel"
+  #   value = "DEBUG"
+  # }
+  # set {
+  #   name  = "acmeURI"
+  #   value = "https://acme-staging-v02.api.letsencrypt.org/directory"
+  # }
 
   set {
     name  = "acmeEmail"

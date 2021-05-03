@@ -55,12 +55,20 @@ https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck
 ### Teleport
 To get access, you will need to configure teleport.
 - Create the kubernetes role: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-k8s-admin-role.yaml`
-- Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root,ubuntu,ec2-user`
+- Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root,gitssh`
 - Go to the URL they give you and set up your 2fa
 - You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
 - You should then be able to go to the applications section and pull up gitlab.
 - Longer term, we hope to configure more of this through code.
 
+If you want to edit users or roles, you should be able to do something like this:
+```
+$ tctl get users > /tmp/users.yaml
+$ vi /tmp/users.yaml # edit user(s)
+$ tctl create -f /tmp/users.yaml
+user "username" has been updated
+$ 
+```
 
 ### Gitlab
 You will also need to log into gitlab with the initial root password:

@@ -6,9 +6,6 @@ teleport:
     output: stderr
 ssh_service:
   enabled: "yes"
-  commands:
-  - name: git-ssh
-    command: [nc , gitlab-gitlab-shell, 22]
 
 kubernetes_service:
   enabled: false
