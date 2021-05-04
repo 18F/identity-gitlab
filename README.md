@@ -61,6 +61,21 @@ To get access, you will need to configure teleport.
 - You should then be able to go to the applications section and pull up gitlab.
 - Longer term, we hope to configure more of this through code.
 
+#### git-ssh
+To allow people to clone repos from gitlab, make sure that they
+are added as a teleport user with `--logins=gitssh`, and have gotten their
+auth set up and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
+to the end:
+```
+Host gitlab
+  ProxyCommand tsh ssh -l gitssh -L 2222:gitlab-gitlab-shell.gitlab:22 --local teleport=gitssh nc localhost 2222
+```
+
+They then should be able to do `git clone git@gitlab:root/repo.git` to
+clone a repo on the gitlab server.
+
+#### Editing users/roles
+
 If you want to edit users or roles, you should be able to do something like this:
 ```
 $ tctl get users > /tmp/users.yaml
@@ -75,6 +90,5 @@ You will also need to log into gitlab with the initial root password:
 - Get the password using `kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' -n gitlab | base64 --decode ; echo`
 - Log in as root and start configuring!
 - Longer term, we want to figure out how to configure this through code.
-
 
 Have fun!!
