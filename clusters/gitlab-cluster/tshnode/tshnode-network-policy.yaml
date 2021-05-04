@@ -23,5 +23,10 @@ spec:
           app: teleport-cluster
     ports:
     - protocol: TCP
-      port: 1
-      endPort: 32768
+      port: 31297
+    - protocol: TCP
+      port: 32592
+    - protocol: TCP
+      port: 32563
+    - protocol: TCP
+      port: 31643
