@@ -9,26 +9,29 @@ spec:
       k8s-app: tshnode
   policyTypes:
   - Egress
+  - Ingress
+  ingress:
+    - {}
   egress:
-  # allow tshnode to get to gitlab over ssh
-  - to:
-    - podSelector:
-        matchLabels:
-          app: gitlab-shell
-    ports:
-    - protocol: TCP
-      port: 22
-  # allow tshnode to get to the teleport cluster
-  - to:
-    - podSelector:
-        matchLabels:
-          app: teleport-cluster
-    ports:
-    - protocol: TCP
-      port: 3023
-    - protocol: TCP
-      port: 3024
-    - protocol: TCP
-      port: 3080
-    - protocol: TCP
-      port: 443
+    # allow tshnode to get to gitlab over ssh
+    - to:
+      - podSelector:
+          matchLabels:
+            app: gitlab-shell
+      ports:
+      - protocol: TCP
+        port: 22
+    # allow tshnode to get to the teleport cluster
+    - to:
+      - podSelector:
+          matchLabels:
+            app: teleport-cluster
+      ports:
+      - protocol: TCP
+        port: 3023
+      - protocol: TCP
+        port: 3024
+      - protocol: TCP
+        port: 3080
+      - protocol: TCP
+        port: 443
