@@ -1,0 +1,27 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: eks
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://aws.github.io/eks-charts
+
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: aws-vpc-cni
+  namespace: kube-system
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: aws-vpc-cni
+      version: "1.1.3"
+      sourceRef:
+        kind: HelmRepository
+        name: eks
+        namespace: flux-system
+      interval: 1m
