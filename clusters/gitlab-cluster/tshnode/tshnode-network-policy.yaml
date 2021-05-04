@@ -16,4 +16,4 @@ spec:
           app: gitlab-shell
     ports:
     - protocol: TCP
-      port: 220
+      port: 22
