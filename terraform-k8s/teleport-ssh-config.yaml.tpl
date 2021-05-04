@@ -6,6 +6,8 @@ teleport:
     output: stderr
 ssh_service:
   enabled: "yes"
+  labels:
+    teleport: gitssh
 
 kubernetes_service:
   enabled: false
