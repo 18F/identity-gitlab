@@ -17,3 +17,11 @@ spec:
     ports:
     - protocol: TCP
       port: 22
+  - to:
+    - podSelector:
+        matchLabels:
+          app: teleport-cluster
+    ports:
+    - protocol: TCP
+      port: 1
+      endPort: 32768
