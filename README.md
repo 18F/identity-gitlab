@@ -55,7 +55,7 @@ https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck
 ### Teleport
 To get access, you will need to configure teleport.
 - Create the kubernetes role: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-k8s-admin-role.yaml`
-- Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root,gitssh`
+- Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root`
 - Go to the URL they give you and set up your 2fa
 - You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
 - You should then be able to go to the applications section and pull up gitlab.
@@ -63,16 +63,16 @@ To get access, you will need to configure teleport.
 
 #### git-ssh
 To allow people to clone repos from gitlab, make sure that they
-are added as a teleport user with `--logins=gitssh`, and have gotten their
-auth set up and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
+are added as a teleport user and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
 to the end:
 ```
-Host gitlab
-  ProxyCommand tsh ssh -l gitssh -L 2222:gitlab-gitlab-shell.gitlab:22 --local teleport=gitssh nc localhost 2222
+Host gitlab.gitlab.identitysandbox.gov
+  ProxyCommand ~/src/identity-gitlab/git-proxycommand.sh
 ```
+You may have to change the path to the `git-proxycommand.sh` script.
 
-They then should be able to do `git clone git@gitlab:root/repo.git` to
-clone a repo on the gitlab server.
+They then should be able to do `git clone git@gitlab.gitlab.identitysandbox.gov:root/repo.git`
+to clone a repo on the gitlab server.
 
 #### Editing users/roles
 

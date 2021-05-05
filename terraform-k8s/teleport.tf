@@ -12,6 +12,9 @@
 resource "kubernetes_namespace" "teleport" {
   metadata {
     name = "teleport"
+    labels = {
+      namespace = "teleport"
+    }
   }
 }
 
@@ -217,16 +220,4 @@ resource "aws_iam_role_policy" "teleport" {
     ]
 }
 EOF
-}
-
-# This is used to configure the teleport-ssh node.  We need it here so we
-# can pass in the cluster name.
-resource "kubernetes_config_map" "example" {
-  metadata {
-    name      = "teleport-ssh-config"
-    namespace = "teleport"
-  }
-  data = {
-    "teleport.yaml" = templatefile("${path.module}/teleport-ssh-config.yaml.tpl", { clusterName = "teleport-${var.cluster_name}.${var.domain}" })
-  }
 }
