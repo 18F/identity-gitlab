@@ -11,6 +11,7 @@ spec:
   - Egress
   - Ingress
   ingress:
+    # allow anybody to get to tshnode
     - {}
   egress:
     # allow tshnode to query dns
@@ -28,7 +29,7 @@ spec:
             app: gitlab-shell
       ports:
       - protocol: TCP
-        port: 22
+        port: 220
     # allow tshnode to get to the teleport cluster
     - to:
       - podSelector:
