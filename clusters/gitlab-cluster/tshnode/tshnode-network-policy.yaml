@@ -29,7 +29,7 @@ spec:
             app: gitlab-shell
       ports:
       - protocol: TCP
-        port: 220
+        port: 22
     # allow tshnode to get to the teleport cluster
     - to:
       - podSelector:
