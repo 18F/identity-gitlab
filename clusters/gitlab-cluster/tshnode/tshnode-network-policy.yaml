@@ -13,6 +13,14 @@ spec:
   ingress:
     - {}
   egress:
+    # allow tshnode to query dns
+    - to:
+      - podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53
     # allow tshnode to get to gitlab over ssh
     - to:
       - podSelector:
