@@ -226,7 +226,7 @@ EOF
 # Adapted from https://community.goteleport.com/t/example-kubernetes-k8s-groups-configuration-with-teleport/907
 resource "kubernetes_role" "teleport-gitssh" {
   metadata {
-    name = "teleport-gitssh"
+    name      = "teleport-gitssh"
     namespace = "gitlab"
   }
 
@@ -237,20 +237,20 @@ resource "kubernetes_role" "teleport-gitssh" {
     verbs          = ["get", "list"]
   }
   rule {
-    api_groups     = [""]
-    resources      = ["pods"]
-    verbs          = ["get", "list"]
+    api_groups = [""]
+    resources  = ["pods"]
+    verbs      = ["get", "list"]
   }
   rule {
-    api_groups     = [""]
-    resources      = ["pods/portforward"]
-    verbs          = ["create"]
+    api_groups = [""]
+    resources  = ["pods/portforward"]
+    verbs      = ["create"]
   }
 }
 
 resource "kubernetes_role_binding" "teleport-gitssh" {
   metadata {
-    name = "teleport-gitssh"
+    name      = "teleport-gitssh"
     namespace = "gitlab"
   }
   role_ref {
