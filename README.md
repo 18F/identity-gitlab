@@ -54,7 +54,7 @@ https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck
 
 ### Teleport
 To get access, you will need to configure teleport.
-- Create the kubernetes role: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-k8s-admin-role.yaml`
+- Create the teleport roles: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-roles.yaml`
 - Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root`
 - Go to the URL they give you and set up your 2fa
 - You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
@@ -63,7 +63,7 @@ To get access, you will need to configure teleport.
 
 #### git-ssh
 To allow people to clone repos from gitlab, make sure that they
-are added as a teleport user and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
+are added as a teleport user with `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <username> --roles=access,gitssh` and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
 to the end:
 ```
 Host gitlab.gitlab.identitysandbox.gov

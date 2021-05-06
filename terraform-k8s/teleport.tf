@@ -221,3 +221,47 @@ resource "aws_iam_role_policy" "teleport" {
 }
 EOF
 }
+
+# This is so we can allow people to port-forward in only to the git ssh service
+# Adapted from https://community.goteleport.com/t/example-kubernetes-k8s-groups-configuration-with-teleport/907
+resource "kubernetes_role" "teleport-gitssh" {
+  metadata {
+    name = "teleport-gitssh"
+    namespace = "gitlab"
+  }
+
+  rule {
+    api_groups     = [""]
+    resources      = ["services"]
+    resource_names = ["gitlab-gitlab-shell"]
+    verbs          = ["get", "list"]
+  }
+  rule {
+    api_groups     = [""]
+    resources      = ["pods"]
+    verbs          = ["get", "list"]
+  }
+  rule {
+    api_groups     = [""]
+    resources      = ["pods/portforward"]
+    verbs          = ["create"]
+  }
+}
+
+resource "kubernetes_role_binding" "teleport-gitssh" {
+  metadata {
+    name = "teleport-gitssh"
+    namespace = "gitlab"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Role"
+    name      = "teleport-gitssh"
+  }
+  subject {
+    kind      = "Group"
+    name      = "teleport-gitssh"
+    api_group = "rbac.authorization.k8s.io"
+    namespace = "teleport"
+  }
+}
