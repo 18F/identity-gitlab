@@ -3,7 +3,7 @@
 # a way to do this with code, but here is how you set it up:
 # 
 # aws-vault exec tooling-admin -- kubectl -n teleport exec --stdin --tty teleport-cluster-<whatever> /bin/bash
-# tctl users add tspencer --roles=editor,access,admin --logins=root,ubuntu
+# tctl users add tspencer --roles=editor,access,admin --logins=root
 #
 # Then, you can go to teleport-${var.cluster_name}.gitlab.identitysandbox.gov
 # and log in with your new creds
@@ -12,6 +12,9 @@
 resource "kubernetes_namespace" "teleport" {
   metadata {
     name = "teleport"
+    labels = {
+      namespace = "teleport"
+    }
   }
 }
 
@@ -53,7 +56,7 @@ resource "random_password" "join-token" {
 resource "kubernetes_secret" "teleport-kube-agent-join-token" {
   depends_on = [kubernetes_namespace.teleport]
   metadata {
-    name = "teleport-kube-agent-join-token"
+    name      = "teleport-kube-agent-join-token"
     namespace = "teleport"
   }
 
@@ -65,7 +68,7 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
 # Ideally, this would be done through flux, but we need it to be live
 # so we can reference the service to get the elb to put the CNAMEs on.
 resource "helm_release" "teleport-cluster" {
-  name       = "teleport-cluster"
+  name = "teleport-cluster"
   # XXX remove the tspencer repo and add teleport back once these PRs get in:
   #  https://github.com/gravitational/teleport/pull/6586
   #  https://github.com/gravitational/teleport/pull/6619
@@ -74,7 +77,7 @@ resource "helm_release" "teleport-cluster" {
   chart      = "teleport-cluster"
   version    = "6.0.0"
   namespace  = "teleport"
-   depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
+  depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
 
   set {
     name  = "namespace"
@@ -91,12 +94,16 @@ resource "helm_release" "teleport-cluster" {
   #   name  = "logLevel"
   #   value = "DEBUG"
   # }
+  # set {
+  #   name  = "acmeURI"
+  #   value = "https://acme-staging-v02.api.letsencrypt.org/directory"
+  # }
 
   set {
     name  = "acmeEmail"
     value = var.certmanager-issuer
   }
- 
+
   set {
     name  = "clusterName"
     value = "teleport-${var.cluster_name}.${var.domain}"
@@ -107,14 +114,14 @@ resource "helm_release" "teleport-cluster" {
     value = "teleport-${var.cluster_name}"
   }
 
- set {
+  set {
     name  = "serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.teleport.arn
   }
- }
+}
 
 resource "helm_release" "teleport-kube-agent" {
-  name       = "teleport-kube-agent"
+  name = "teleport-kube-agent"
   # XXX remove the tspencer repo and add teleport back once these PRs get in:
   #  https://github.com/gravitational/teleport/pull/6586
   #  https://github.com/gravitational/teleport/pull/6619
@@ -213,4 +220,48 @@ resource "aws_iam_role_policy" "teleport" {
     ]
 }
 EOF
+}
+
+# This is so we can allow people to port-forward in only to the git ssh service
+# Adapted from https://community.goteleport.com/t/example-kubernetes-k8s-groups-configuration-with-teleport/907
+resource "kubernetes_role" "teleport-gitssh" {
+  metadata {
+    name      = "teleport-gitssh"
+    namespace = "gitlab"
+  }
+
+  rule {
+    api_groups     = [""]
+    resources      = ["services"]
+    resource_names = ["gitlab-gitlab-shell"]
+    verbs          = ["get", "list"]
+  }
+  rule {
+    api_groups = [""]
+    resources  = ["pods"]
+    verbs      = ["get", "list"]
+  }
+  rule {
+    api_groups = [""]
+    resources  = ["pods/portforward"]
+    verbs      = ["create"]
+  }
+}
+
+resource "kubernetes_role_binding" "teleport-gitssh" {
+  metadata {
+    name      = "teleport-gitssh"
+    namespace = "gitlab"
+  }
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Role"
+    name      = "teleport-gitssh"
+  }
+  subject {
+    kind      = "Group"
+    name      = "teleport-gitssh"
+    api_group = "rbac.authorization.k8s.io"
+    namespace = "teleport"
+  }
 }

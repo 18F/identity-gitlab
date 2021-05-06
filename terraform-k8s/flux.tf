@@ -20,8 +20,8 @@ data "kubectl_file_documents" "fluxcd" {
 }
 resource "kubectl_manifest" "fluxcd" {
   depends_on = [kubernetes_namespace.flux_system]
-  count     = length(data.kubectl_file_documents.fluxcd.documents)
-  yaml_body = element(data.kubectl_file_documents.fluxcd.documents, count.index)
+  count      = length(data.kubectl_file_documents.fluxcd.documents)
+  yaml_body  = element(data.kubectl_file_documents.fluxcd.documents, count.index)
 }
 
 data "kubectl_file_documents" "fluxcd-sync" {
@@ -29,8 +29,8 @@ data "kubectl_file_documents" "fluxcd-sync" {
 }
 resource "kubectl_manifest" "fluxcd-sync" {
   depends_on = [kubernetes_namespace.flux_system]
-  count     = length(data.kubectl_file_documents.fluxcd-sync.documents)
-  yaml_body = element(data.kubectl_file_documents.fluxcd-sync.documents, count.index)
+  count      = length(data.kubectl_file_documents.fluxcd-sync.documents)
+  yaml_body  = element(data.kubectl_file_documents.fluxcd-sync.documents, count.index)
 }
 
 # SSH

@@ -41,3 +41,8 @@ variable "node_instance_type" {
   default     = "t3a.large"
   description = "instance type for nodes"
 }
+
+variable "k8s_public_api" {
+  default     = true
+  description = "enable the public k8s API.  XXX cannot actually set this to false because the kubernetes/helm providers have to be able to work"
+}

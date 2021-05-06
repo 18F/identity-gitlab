@@ -54,19 +54,41 @@ https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck
 
 ### Teleport
 To get access, you will need to configure teleport.
-- Create the kubernetes role: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-k8s-admin-role.yaml`
-- Add yourself as a user: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root,ubuntu,ec2-user`
+- Create the teleport roles: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-roles.yaml`
+- Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root`
 - Go to the URL they give you and set up your 2fa
 - You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
 - You should then be able to go to the applications section and pull up gitlab.
 - Longer term, we hope to configure more of this through code.
 
+#### git-ssh
+To allow people to clone repos from gitlab, make sure that they
+are added as a teleport user with `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <username> --roles=access,gitssh` and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
+to the end:
+```
+Host gitlab.gitlab.identitysandbox.gov
+  ProxyCommand ~/src/identity-gitlab/git-proxycommand.sh
+```
+You may have to change the path to the `git-proxycommand.sh` script.
+
+They then should be able to do `git clone git@gitlab.gitlab.identitysandbox.gov:root/repo.git`
+to clone a repo on the gitlab server.
+
+#### Editing users/roles
+
+If you want to edit users or roles, you should be able to do something like this:
+```
+$ tctl get users > /tmp/users.yaml
+$ vi /tmp/users.yaml # edit user(s)
+$ tctl create -f /tmp/users.yaml
+user "username" has been updated
+$ 
+```
 
 ### Gitlab
 You will also need to log into gitlab with the initial root password:
 - Get the password using `kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' -n gitlab | base64 --decode ; echo`
 - Log in as root and start configuring!
 - Longer term, we want to figure out how to configure this through code.
-
 
 Have fun!!

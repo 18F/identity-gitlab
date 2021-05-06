@@ -14,8 +14,8 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
   }
 
   data = {
-    "cluster_name" = var.cluster_name,
-    "domain" = var.domain,
+    "cluster_name"             = var.cluster_name,
+    "domain"                   = var.domain,
     "certmanager-issuer-email" = var.certmanager-issuer
   }
 }
