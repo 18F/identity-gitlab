@@ -45,16 +45,12 @@ find . -name terraform.tfstate -print0 | xargs -0 rm
 
 # do terraform!
 pushd "$SCRIPT_BASE/terraform"
-terraform init -backend-config="bucket=$BUCKET" \
-      -backend-config="key=tf-state/$TF_VAR_cluster_name" \
-      -backend-config="dynamodb_table=eks_terraform_locks" \
-      -backend-config="region=$REGION" \
-      -upgrade
-terraform apply
-
-# Gather info from terraform to use in terraform-k8s
-export TF_VAR_oidc_arn=$(terraform output oidc_arn)
-export TF_VAR_oidc_url=$(terraform output oidc_url)
+# terraform init -backend-config="bucket=$BUCKET" \
+#       -backend-config="key=tf-state/$TF_VAR_cluster_name" \
+#       -backend-config="dynamodb_table=eks_terraform_locks" \
+#       -backend-config="region=$REGION" \
+#       -upgrade
+# terraform apply
 
 # This updates the kubeconfig so that we can access the cluster using kubectl
 aws eks update-kubeconfig --name "$TF_VAR_cluster_name"

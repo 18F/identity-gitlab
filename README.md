@@ -18,7 +18,7 @@ with terraform that contains the information you want to pass in,
 and then [define environment variables using it](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#define-container-environment-variables-using-configmap-data),
 or by using [Flux's valuesFrom](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmrelease-guide/values/#config-maps)
 or [secretKeyRef](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmrelease-guide/values/#secrets)
-mechanisms.  Examples of this can be found in `terraform-k8s/gitlab.tf` and
+mechanisms.  Examples of this can be found in `terraform/gitlab.tf` and
 `clusters/gitlab-cluster/gitlab/gitlab.yaml`.
 
 ## Setup
@@ -54,7 +54,7 @@ https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck
 
 ### Teleport
 To get access, you will need to configure teleport.
-- Create the teleport roles: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-roles.yaml`
+- Create the teleport roles: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < ./teleport-roles.yaml`
 - Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root`
 - Go to the URL they give you and set up your 2fa
 - You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`

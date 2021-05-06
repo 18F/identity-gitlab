@@ -4,6 +4,7 @@
 
 variable "cluster_name" {
   type = string
+  description = "name of the cluster that we are deploying this stuff to"
 }
 
 variable "region" {
@@ -45,4 +46,14 @@ variable "node_instance_type" {
 variable "k8s_public_api" {
   default     = true
   description = "enable the public k8s API.  XXX cannot actually set this to false because the kubernetes/helm providers have to be able to work"
+}
+
+variable "domain" {
+  default = "gitlab.identitysandbox.gov"
+  type    = string
+}
+
+variable "certmanager-issuer" {
+  default = "security@login.gov"
+  type    = string
 }
