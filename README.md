@@ -88,10 +88,27 @@ user "username" has been updated
 $ 
 ```
 
+#### Updating
+To update teleport, you can update the version of the `teleport-cluster` and
+`teleport-kube-agent` helm charts in `terraform/teleport.tf` and re-run
+`deploy.sh`.
+
+
 ### Gitlab
 You will also need to log into gitlab with the initial root password:
 - Get the password using `kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' -n gitlab | base64 --decode ; echo`
 - Log in as root and start configuring!
 - Longer term, we want to figure out how to configure this through code.
+
+#### Updates
+To update gitlab, just go into `clusters/gitlab-cluster/gitlab/gitlab.yaml` and
+change the version of the chart and check it in.  FluxCD should deploy it once it
+detects the change in the branch that it is watching.
+
+You can find what the latest/greatest version of
+the chart is by making sure that it's been added into your local helm repo list
+with `helm repo add gitlab https://charts.gitlab.io/`, and then saying
+`helm search repo gitlab` and seeing what the latest version of the `gitlab/gitlab`
+chart is.
 
 Have fun!!
