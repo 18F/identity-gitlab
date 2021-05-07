@@ -50,6 +50,9 @@ Also, some namespaces won't delete right off.  You will need to
 follow the procedure in here to make them actually go away:
 https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
 
+You may have to delete an ELB by hand too.  I think that EKS is deleted too
+fast sometimes for teleport or gitlab to tear it down.
+
 ## Further Setup
 
 ### Teleport

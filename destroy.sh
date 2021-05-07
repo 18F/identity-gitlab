@@ -41,22 +41,11 @@ for i in ${REQUIREDBINARIES} ; do
      checkbinary "$i"
 done
 
-# do terraform-k8s first
-pushd "$SCRIPT_BASE/terraform-k8s"
-terraform init -backend-config="bucket=$BUCKET" \
-      -backend-config="key=tf-state/k8s-$TF_VAR_cluster_name" \
-      -backend-config="dynamodb_table=eks_terraform_locks" \
-      -backend-config="region=$REGION" \
-      -upgrade
-terraform destroy
-popd
-
-# now destroy EKS
-pushd "$RUN_BASE/$SCRIPT_BASE/terraform"
+# do the deed
+cd "$RUN_BASE/$SCRIPT_BASE/terraform"
 terraform init -backend-config="bucket=$BUCKET" \
       -backend-config="key=tf-state/$TF_VAR_cluster_name" \
       -backend-config="dynamodb_table=eks_terraform_locks" \
       -backend-config="region=$REGION" \
       -upgrade
 terraform destroy
-popd
