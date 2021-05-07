@@ -6,3 +6,4 @@ resources:
 - ./gitlab/
 - ./logging/
 - ./cluster-autoscaler/
+- ./aws-node-termination-handler/
