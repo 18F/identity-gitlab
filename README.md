@@ -18,18 +18,18 @@ with terraform that contains the information you want to pass in,
 and then [define environment variables using it](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#define-container-environment-variables-using-configmap-data),
 or by using [Flux's valuesFrom](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmrelease-guide/values/#config-maps)
 or [secretKeyRef](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmrelease-guide/values/#secrets)
-mechanisms.  Examples of this can be found in `terraform-k8s/gitlab.tf` and
+mechanisms.  Examples of this can be found in `terraform/gitlab.tf` and
 `clusters/gitlab-cluster/gitlab/gitlab.yaml`.
 
 ## Setup
 
-The setup will only need to be run once per account.  It sets up the s3 bucket
+The setup will only need to be run once per AWS account.  It sets up the s3 bucket
 and dynamodb stuff for remote state and locking and then goes on to do the deploy.
 
 Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 `gitlab-dev` is the name of your cluster.
 
-## Updates
+## Deploy
 
 `aws-vault exec sandbox-admin -- ./deploy.sh gitlab-dev` will deploy all the
 latest changes you have there in your repo.
@@ -37,7 +37,8 @@ latest changes you have there in your repo.
 One thing to note:  If you want to have your cluster operate off of a
 branch, just go edit `clusters/gitlab-cluster/flux-system/gotk-sync.yaml` and
 change the branch there, then run `deploy.sh` as above to tell fluxcd
-to pull from that branch instead of main.
+to pull from that branch instead of main.  You might want to make sure that
+you change it back to master before you make your PR.
 
 ## Delete
 
@@ -50,11 +51,14 @@ Also, some namespaces won't delete right off.  You will need to
 follow the procedure in here to make them actually go away:
 https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
 
+You may have to delete an ELB by hand too.  I think that EKS is deleted too
+fast sometimes for teleport or gitlab to tear it down.
+
 ## Further Setup
 
 ### Teleport
 To get access, you will need to configure teleport.
-- Create the teleport roles: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-roles.yaml`
+- Create the teleport roles: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < ./teleport-roles.yaml`
 - Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root`
 - Go to the URL they give you and set up your 2fa
 - You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
@@ -85,10 +89,40 @@ user "username" has been updated
 $ 
 ```
 
+#### Updating
+To update teleport, you can update the version of the `teleport-cluster` and
+`teleport-kube-agent` helm charts in `terraform/teleport.tf` and re-run
+`deploy.sh`.
+
+
 ### Gitlab
 You will also need to log into gitlab with the initial root password:
 - Get the password using `kubectl get secret gitlab-gitlab-initial-root-password -ojsonpath='{.data.password}' -n gitlab | base64 --decode ; echo`
 - Log in as root and start configuring!
 - Longer term, we want to figure out how to configure this through code.
+
+#### Updates
+To update gitlab, just go into `clusters/gitlab-cluster/gitlab/gitlab.yaml` and
+change the version of the chart and check it in.  FluxCD should deploy it once it
+detects the change in the branch that it is watching.  It will check once a minute,
+or you can tell it to check right away by saying
+`flux reconcile source git flux-system`.
+
+You can find what the latest/greatest version of
+the chart is by making sure that it's been added into your local helm repo list
+with `helm repo add gitlab https://charts.gitlab.io/`, and then saying
+`helm search repo gitlab` and seeing what the latest version of the `gitlab/gitlab`
+chart is.
+
+I have had a failed upgrade once, and I did a
+```
+helm rollback gitlab -n gitlab
+helm get values gitlab -n gitlab  > /tmp/gitlab.yaml
+helm upgrade gitlab gitlab/gitlab -f /tmp/gitlab.yaml -n gitlab
+```
+and it worked, so that might be a useful tool.
+`helm history gitlab -n gitlab --debug` might also be a good tool
+to see how the rollout went.
+
 
 Have fun!!

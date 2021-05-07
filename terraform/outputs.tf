@@ -1,10 +1,10 @@
 
-# Outputs needed by the terraform-k8s stuff
-
-output "oidc_arn" {
-  value = aws_iam_openid_connect_provider.eks.arn
+output "deploy_key" {
+  value       = tls_private_key.main.public_key_pem
+  description = "you can put this public ssh key into a repo as a deploy key"
 }
 
-output "oidc_url" {
-  value = aws_iam_openid_connect_provider.eks.url
+output "teleport_url" {
+  value       = "https://teleport-${var.cluster_name}.${var.domain}/"
+  description = "The URL for teleport"
 }

@@ -182,12 +182,12 @@ resource "aws_iam_role" "teleport" {
     {
       "Effect": "Allow",
       "Principal": {
-        "Federated": "${var.oidc_arn}"
+        "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "ForAnyValue:StringEquals": {
-          "${var.oidc_url}:sub": [
+          "${aws_iam_openid_connect_provider.eks.url}:sub": [
             "system:serviceaccount:teleport:teleport-kube-agent",
             "system:serviceaccount:teleport:teleport-cluster"
           ]
