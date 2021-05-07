@@ -122,21 +122,6 @@ resource "aws_iam_role_policy" "worker_nodes" {
         "logs:PutLogEvents"
       ],
       "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "autoscaling:SetDesiredCapacity",
-        "autoscaling:TerminateInstanceInAutoScalingGroup",
-        "autoscaling:UpdateAutoScalingGroup"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "StringEquals": {
-          "autoscaling:ResourceTag/k8s.io/cluster-autoscaler/enabled": "true",
-          "autoscaling:ResourceTag/kubernetes.io/cluster/${var.cluster_name}": "owned"
-        }
-      }
     }
   ]
 }
