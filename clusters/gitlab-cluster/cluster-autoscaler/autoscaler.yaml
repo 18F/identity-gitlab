@@ -39,5 +39,5 @@ spec:
       targetPath: autoDiscovery.clusterName
     - kind: ConfigMap
       name: terraform-info
-      valuesKey: autoscalerRoleAnnotations
-      targetPath: rbac.serviceAccount.annotations
+      valuesKey: autoscalerRoleArn
+      targetPath: rbac.serviceAccount.annotations.eks\.amazonaws\.com/role-arn

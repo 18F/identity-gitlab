@@ -245,8 +245,8 @@ resource "kubernetes_config_map" "terraform-info" {
   }
 
   data = {
-    "cluster_name" = var.cluster_name,
-    "region"       = var.region,
-    "autoscalerRoleAnnotations" = "[eks.amazonaws.com/role-arn: ${aws_iam_role.cluster-autoscaler.arn}]"
+    "cluster_name"      = var.cluster_name,
+    "region"            = var.region,
+    "autoscalerRoleArn" = aws_iam_role.cluster-autoscaler.arn
   }
 }
