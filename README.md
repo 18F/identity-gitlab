@@ -111,4 +111,15 @@ with `helm repo add gitlab https://charts.gitlab.io/`, and then saying
 `helm search repo gitlab` and seeing what the latest version of the `gitlab/gitlab`
 chart is.
 
+I have had a failed upgrade once, and I did a
+```
+helm rollback gitlab -n gitlab
+helm get values gitlab -n gitlab  > /tmp/gitlab.yaml
+helm upgrade gitlab gitlab/gitlab -f /tmp/gitlab.yaml -n gitlab
+```
+and it worked, so that might be a useful tool.
+`helm history gitlab -n gitlab --debug` might also be a good tool
+to see how the rollout went.
+
+
 Have fun!!
