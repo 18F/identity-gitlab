@@ -7,3 +7,4 @@ resources:
 - ./logging/
 - ./cluster-autoscaler/
 - ./aws-node-termination-handler/
+- ./secrets-store-csi/
