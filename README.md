@@ -23,13 +23,13 @@ mechanisms.  Examples of this can be found in `terraform/gitlab.tf` and
 
 ## Setup
 
-The setup will only need to be run once per account.  It sets up the s3 bucket
+The setup will only need to be run once per AWS account.  It sets up the s3 bucket
 and dynamodb stuff for remote state and locking and then goes on to do the deploy.
 
 Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 `gitlab-dev` is the name of your cluster.
 
-## Updates
+## Deploy
 
 `aws-vault exec sandbox-admin -- ./deploy.sh gitlab-dev` will deploy all the
 latest changes you have there in your repo.
@@ -37,7 +37,8 @@ latest changes you have there in your repo.
 One thing to note:  If you want to have your cluster operate off of a
 branch, just go edit `clusters/gitlab-cluster/flux-system/gotk-sync.yaml` and
 change the branch there, then run `deploy.sh` as above to tell fluxcd
-to pull from that branch instead of main.
+to pull from that branch instead of main.  You might want to make sure that
+you change it back to master before you make your PR.
 
 ## Delete
 
@@ -103,7 +104,9 @@ You will also need to log into gitlab with the initial root password:
 #### Updates
 To update gitlab, just go into `clusters/gitlab-cluster/gitlab/gitlab.yaml` and
 change the version of the chart and check it in.  FluxCD should deploy it once it
-detects the change in the branch that it is watching.
+detects the change in the branch that it is watching.  It will check once a minute,
+or you can tell it to check right away by saying
+`flux reconcile source git flux-system`.
 
 You can find what the latest/greatest version of
 the chart is by making sure that it's been added into your local helm repo list
