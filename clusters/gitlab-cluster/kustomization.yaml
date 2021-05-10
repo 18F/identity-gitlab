@@ -8,6 +8,6 @@ resources:
 - ./cluster-autoscaler/
 - ./aws-node-termination-handler/
 - ./secrets-store-csi/
-- ./metrics-server/
+# - ./metrics-server/
 - ./dashboard/
 - ./podinfo/
