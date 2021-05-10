@@ -35,5 +35,5 @@ spec:
     protocolHttp: true
     # rbac:
     #   clusterReadOnlyRole: true
-    metrics-server:
-      enabled: true
+    # metrics-server:
+    #   enabled: true
