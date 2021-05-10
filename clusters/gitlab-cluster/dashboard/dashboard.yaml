@@ -24,7 +24,7 @@ spec:
   interval: 5m
   chart:
     spec:
-      chart: dashboard
+      chart: kubernetes-dashboard
       version: "4.0.3"
       sourceRef:
         kind: HelmRepository
