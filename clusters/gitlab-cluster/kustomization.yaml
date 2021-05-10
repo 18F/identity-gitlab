@@ -9,3 +9,4 @@ resources:
 - ./aws-node-termination-handler/
 - ./secrets-store-csi/
 - ./metrics-server/
+- ./dashboard/
