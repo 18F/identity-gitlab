@@ -33,7 +33,7 @@ spec:
       interval: 1m
   values:
     protocolHttp: true
-    rbac:
-      clusterReadOnlyRole: true
+    # rbac:
+    #   clusterReadOnlyRole: true
     metrics-server:
       enabled: true
