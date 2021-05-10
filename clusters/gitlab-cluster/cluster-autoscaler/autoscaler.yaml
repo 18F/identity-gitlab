@@ -27,10 +27,10 @@ spec:
       interval: 1m
   values:
     extraArgs:
-      skip-nodes-with-system-pods: false
-      balance-similar-node-groups: true
+      skip-nodes-with-system-pods: "false"
+      balance-similar-node-groups: "true"
     podAnnotations:
-      cluster-autoscaler.kubernetes.io/safe-to-evict: false
+      cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   valuesFrom:
     - kind: ConfigMap
       name: terraform-info
