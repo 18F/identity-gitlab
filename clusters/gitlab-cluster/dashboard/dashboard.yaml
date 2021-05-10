@@ -35,3 +35,5 @@ spec:
     protocolHttp: true
     rbac:
       clusterReadOnlyRole: true
+    metricsScraper:
+      enabled: true
