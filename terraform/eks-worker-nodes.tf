@@ -11,6 +11,11 @@ resource "aws_eks_node_group" "eks" {
   instance_types  = [var.node_instance_type]
   capacity_type   = var.nodetype
 
+  # if the cluster autoscaler grew us, don't mess with it
+  lifecycle{
+    ignore_changes = [scaling_config.0.desired_size]
+  }
+
   scaling_config {
     desired_size = 3
     max_size     = var.node_max_size
@@ -116,6 +121,7 @@ resource "aws_iam_role_policy" "worker_nodes" {
         "autoscaling:DescribeAutoScalingInstances",
         "autoscaling:DescribeLaunchConfigurations",
         "autoscaling:DescribeTags",
+        "autoscaling:SetDesiredCapacity",
         "ec2:DescribeLaunchTemplateVersions",
         "logs:CreateLogGroup",
         "logs:CreateLogStream",
