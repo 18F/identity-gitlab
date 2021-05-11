@@ -35,6 +35,13 @@ resource "kubernetes_secret" "rds-pw-gitlab" {
     namespace = "gitlab"
   }
 
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to labels, e.g. because helm adds stuff.
+      metadata.0.labels,
+    ]
+  }
+
   data = {
     password = data.aws_secretsmanager_secret_version.rds-pw-gitlab.secret_string
   }
@@ -67,6 +74,10 @@ resource "aws_db_instance" "gitlab" {
   backup_retention_period = var.rds_backup_retention_period
   backup_window           = var.rds_backup_window
   db_subnet_group_name    = aws_db_subnet_group.gitlab.id
+
+  tags = {
+    Name = "${var.cluster_name}-db-gitlab"
+  }
 }
 
 resource "aws_db_parameter_group" "force_ssl" {
