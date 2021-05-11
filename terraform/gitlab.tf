@@ -17,6 +17,8 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "cluster_name"             = var.cluster_name,
     "domain"                   = var.domain,
     "certmanager-issuer-email" = var.certmanager-issuer
+    "pghost"                   = aws_db_instance.gitlab.address
+    "pgport"                   = aws_db_instance.gitlab.port
   }
 }
 
@@ -61,13 +63,14 @@ resource "aws_db_instance" "gitlab" {
   skip_final_snapshot     = true
   multi_az                = true
   storage_encrypted       = true
+  vpc_security_group_ids  = [aws_security_group.gitlab-db.id]
   backup_retention_period = var.rds_backup_retention_period
   backup_window           = var.rds_backup_window
   db_subnet_group_name    = aws_db_subnet_group.gitlab.id
 }
 
 resource "aws_db_parameter_group" "force_ssl" {
-  name_prefix = "gitlab"
+  name_prefix = "${var.cluster_name}-gitlab"
 
   # Before changing this value, make sure the parameters are correct for the
   # version you are upgrading to.  See
@@ -108,5 +111,22 @@ resource "aws_db_parameter_group" "force_ssl" {
 
   lifecycle {
     create_before_destroy = true
+  }
+}
+
+resource "aws_security_group" "gitlab-db" {
+  name        = "${var.cluster_name}-gitlab-db"
+  description = "gitlab db for ${var.cluster_name}"
+  vpc_id      = aws_vpc.eks.id
+
+  ingress {
+    from_port   = 5432
+    to_port     = 5432
+    protocol    = "tcp"
+    security_groups = [aws_security_group.eks-cluster.id]
+  }
+
+  tags = {
+    Name = "${var.cluster_name} gitlab-db"
   }
 }
