@@ -28,7 +28,8 @@ variable "db_subnet_count" {
 }
 
 variable "kubecontrolnets" {
-  default = ["98.146.223.15/32", "159.142.0.0/16", "50.46.2.51/32"]
+  # set this up in your shell environment like this:
+  # export TF_VAR_kubecontrolnets='["x.x.x.x/32", "gsa.vpn.sub.net/16", "your.home.ip.addr/32"]'
   type    = list(string)
   description = "networks which are allowed to talk with the k8s API"
 }
