@@ -17,10 +17,20 @@ variable "vpc_cidr" {
   description = "cidr block for VPC"
 }
 
-# networks which are allowed to talk with the k8s API
+variable "eks_subnet_count" {
+  default     = 2
+  description = "number of subnets used for EKS"
+}
+
+variable "db_subnet_count" {
+  default     = 2
+  description = "number of subnets used for RDS"
+}
+
 variable "kubecontrolnets" {
   default = ["98.146.223.15/32", "159.142.0.0/16", "50.46.2.51/32"]
   type    = list(string)
+  description = "networks which are allowed to talk with the k8s API"
 }
 
 variable "nodetype" {
@@ -56,4 +66,12 @@ variable "domain" {
 variable "certmanager-issuer" {
   default = "security@login.gov"
   type    = string
+}
+
+variable "rds_backup_retention_period" {
+  default = "34"
+}
+
+variable "rds_backup_window" {
+  default = "08:00-08:34"
 }

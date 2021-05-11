@@ -46,11 +46,10 @@ resource "aws_route53_record" "teleport-wildcard" {
   records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
 }
 
-# This is the join token
-resource "random_password" "join-token" {
-  length           = 26
-  special          = true
-  override_special = "/@£$"
+# This is actually created by the deploy script so that
+# it is available when we do tf, but not stored in the state.
+data "aws_secretsmanager_secret_version" "join-token" {
+  secret_id = "${var.cluster_name}-teleport-join-token"
 }
 
 resource "kubernetes_secret" "teleport-kube-agent-join-token" {
@@ -61,7 +60,7 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
   }
 
   data = {
-    auth-token = random_password.join-token.result
+    auth-token = data.aws_secretsmanager_secret_version.join-token.secret_string
   }
 }
 

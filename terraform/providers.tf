@@ -15,10 +15,6 @@ terraform {
     kubectl = {
       source = "gavinbunney/kubectl"
     }
-    flux = {
-      source  = "fluxcd/flux"
-      version = ">= 0.0.13"
-    }
     tls = {
       source  = "hashicorp/tls"
       version = "3.1.0"

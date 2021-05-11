@@ -12,7 +12,7 @@ resource "aws_eks_node_group" "eks" {
   capacity_type   = var.nodetype
 
   # if the cluster autoscaler grew us, don't mess with it
-  lifecycle{
+  lifecycle {
     ignore_changes = [scaling_config.0.desired_size]
   }
 

@@ -29,6 +29,12 @@ spec:
     global:
       ingress:
         enabled: true
+      psql:
+        password:
+          secret: rds-pw-gitlab
+          key: password
+    postgresql:
+      install: false
   valuesFrom:
     - kind: ConfigMap
       name: terraform-gitlab-info

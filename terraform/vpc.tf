@@ -16,7 +16,7 @@ resource "aws_vpc" "eks" {
 }
 
 resource "aws_subnet" "eks" {
-  count = 2
+  count = var.eks_subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
@@ -29,6 +29,15 @@ resource "aws_subnet" "eks" {
     "kubernetes.io/role/elb", "1",
     "kubernetes.io/role/internal-elb", ""
   )
+}
+
+resource "aws_subnet" "db" {
+  count = var.db_subnet_count
+
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index + var.eks_subnet_count)
+  vpc_id                  = aws_vpc.eks.id
+  map_public_ip_on_launch = false
 }
 
 resource "aws_internet_gateway" "eks" {

@@ -44,9 +44,6 @@ you change it back to master before you make your PR.
 
 `aws-vault exec sandbox-admin -- ./destroy.sh gitlab-dev`
 
-If it asks you for oidc stuff, just give it random stuff.
-That will go away once we go back to a single tf run.
-
 Also, some namespaces won't delete right off.  You will need to
 follow the procedure in here to make them actually go away:
 https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
