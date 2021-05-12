@@ -29,6 +29,10 @@ and dynamodb stuff for remote state and locking and then goes on to do the deplo
 Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 `gitlab-dev` is the name of your cluster.
 
+NOTE:  Right now, you must run this in the account that is hosting the live
+route53 domain that this uses.  Otherwise, it will write it's DNS entries into
+the other account's route53, and nothing will ever see them.
+
 ## Deploy
 
 `aws-vault exec sandbox-admin -- ./deploy.sh gitlab-dev` will deploy all the
