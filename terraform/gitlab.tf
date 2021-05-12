@@ -150,3 +150,43 @@ resource "aws_security_group" "gitlab-db" {
     Name = "${var.cluster_name} gitlab-db"
   }
 }
+
+resource "aws_elasticache_replication_group" "gitlab" {
+  automatic_failover_enabled    = true
+  availability_zones            = data.aws_availability_zones.available.names.*
+  replication_group_id          = "${var.cluster}-gitlab"
+  replication_group_description = "${var.cluster} redis for gitlab"
+  node_type                     = "cache.m4.large"
+  number_cache_clusters         = 2
+  parameter_group_name          = "default.redis6.x"
+  port                          = 6379
+  subnet_group_name             = aws_elasticache_subnet_group.gitlab.id
+  security_group_ids            = [aws_security_group.gitlab-redis.id]
+}
+
+resource "aws_elasticache_subnet_group" "gitlab" {
+  description = "${var.cluster_name} redis subnet group for gitlab"
+  name        = "${var.cluster_name}-redis-gitlab"
+  subnet_ids  = aws_subnet.service.*.id
+
+  tags = {
+    Name = "${var.cluster_name}-redis-gitlab"
+  }
+}
+
+resource "aws_security_group" "gitlab-redis" {
+  name        = "${var.cluster_name}-gitlab-redis"
+  description = "gitlab redis for ${var.cluster_name}"
+  vpc_id      = aws_vpc.eks.id
+
+  ingress {
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    security_groups = [aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
+  }
+
+  tags = {
+    Name = "${var.cluster_name} gitlab-redis"
+  }
+}

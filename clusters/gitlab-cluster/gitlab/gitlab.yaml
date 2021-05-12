@@ -35,6 +35,8 @@ spec:
           key: password
     postgresql:
       install: false
+    # redis:
+    #   install: false
   valuesFrom:
     - kind: ConfigMap
       name: terraform-gitlab-info
