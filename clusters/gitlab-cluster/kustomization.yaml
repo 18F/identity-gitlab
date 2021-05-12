@@ -10,4 +10,3 @@ resources:
 # - ./secrets-store-csi/
 - ./metrics-server/
 - ./dashboard/
-- ./podinfo/

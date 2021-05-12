@@ -121,5 +121,12 @@ and it worked, so that might be a useful tool.
 `helm history gitlab -n gitlab --debug` might also be a good tool
 to see how the rollout went.
 
+### Dashboard
+
+If you want to see what is going on in the cluster, and you are a k8s-admin,
+you can do `kubectl port-forward service/dashboard-kubernetes-dashboard 4430:443 -n kubernetes-dashboard`
+and then go to http://localhost:4430/ to see almost everything.  It is running in a
+read-only mode, with reduced privs, so it can't see things like secrets and so on.
+
 
 Have fun!!
