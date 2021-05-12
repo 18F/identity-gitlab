@@ -52,6 +52,15 @@ data "aws_secretsmanager_secret_version" "join-token" {
   secret_id = "${var.cluster_name}-teleport-join-token"
 }
 
+# XXX according to
+# https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1,
+# this is a good way to store secrets.  I am suspicious that there
+# is still stuff stored in the tf state that, even if encrypted, could
+# be dangerous.  If we want to go the extra mile, we can turn on the
+# secrets-store-csi and set up secret syncing so that there is no
+# suspicion of this, but that would add a fair amount of complexity that the gruntwork
+# article seems to say that we don't need to worry about, so for
+# now, we are going to go with their recommendation.
 resource "kubernetes_secret" "teleport-kube-agent-join-token" {
   depends_on = [kubernetes_namespace.teleport]
   metadata {
