@@ -34,6 +34,7 @@ spec:
           secret: rds-pw-gitlab
           key: password
       redis:
+        scheme: rediss
         password:
           secret: rds-pw-gitlab
           key: redispw
