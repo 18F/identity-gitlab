@@ -91,7 +91,7 @@ resource "aws_security_group" "eks-cluster" {
   }
 
   tags = {
-    Name = "terraform-eks"
+    Name = "${var.cluster_name}-eks-cluster"
   }
 }
 
@@ -103,4 +103,14 @@ resource "aws_security_group_rule" "eks-cluster-ingress-workstation-https" {
   security_group_id = aws_security_group.eks-cluster.id
   to_port           = 443
   type              = "ingress"
+}
+
+resource "aws_security_group_rule" "eks-cluster-egress-db" {
+  source_security_group_id = aws_security_group.gitlab-db.id
+  description              = "Allow eks to talk to databases"
+  from_port                = 5432
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.eks-cluster.id
+  to_port                  = 5432
+  type                     = "egress"
 }

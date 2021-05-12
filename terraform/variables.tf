@@ -22,15 +22,15 @@ variable "eks_subnet_count" {
   description = "number of subnets used for EKS"
 }
 
-variable "db_subnet_count" {
+variable "service_subnet_count" {
   default     = 2
-  description = "number of subnets used for RDS"
+  description = "number of subnets used for RDS and other services"
 }
 
 variable "kubecontrolnets" {
   # set this up in your shell environment like this:
   # export TF_VAR_kubecontrolnets='["x.x.x.x/32", "gsa.vpn.sub.net/16", "your.home.ip.addr/32"]'
-  type    = list(string)
+  type        = list(string)
   description = "networks which are allowed to talk with the k8s API"
 }
 

@@ -50,7 +50,7 @@ resource "kubernetes_secret" "rds-pw-gitlab" {
 resource "aws_db_subnet_group" "gitlab" {
   description = "${var.cluster_name} subnet group for gitlab"
   name        = "${var.cluster_name}-db-gitlab"
-  subnet_ids  = aws_subnet.db.*.id
+  subnet_ids  = aws_subnet.service.*.id
 
   tags = {
     Name = "${var.cluster_name}-db-gitlab"
@@ -131,9 +131,9 @@ resource "aws_security_group" "gitlab-db" {
   vpc_id      = aws_vpc.eks.id
 
   ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
     security_groups = [aws_security_group.eks-cluster.id]
   }
 
