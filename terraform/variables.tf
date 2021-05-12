@@ -76,3 +76,7 @@ variable "rds_backup_retention_period" {
 variable "rds_backup_window" {
   default = "08:00-08:34"
 }
+
+variable "redis_port" {
+  default = 6379
+}
