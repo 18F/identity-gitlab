@@ -27,6 +27,12 @@ spec:
       interval: 1m
   values:
     global:
+      hosts:
+        https: false
+        gitlab:
+          name: gitlab-webservice-default
+          https: false
+          servicePort: 8181
       ingress:
         enabled: true
       psql:
