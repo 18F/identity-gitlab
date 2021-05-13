@@ -27,13 +27,6 @@ variable "service_subnet_count" {
   description = "number of subnets used for RDS and other services"
 }
 
-variable "kubecontrolnets" {
-  # set this up in your shell environment like this:
-  # export TF_VAR_kubecontrolnets='["x.x.x.x/32", "gsa.vpn.sub.net/16", "your.home.ip.addr/32"]'
-  type        = list(string)
-  description = "networks which are allowed to talk with the k8s API"
-}
-
 variable "nodetype" {
   default     = "SPOT"
   description = "make this be SPOT or ON_DEMAND"
