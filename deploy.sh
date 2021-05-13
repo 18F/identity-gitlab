@@ -22,6 +22,18 @@ checkbinary() {
      fi
 }
 
+# This creates a secret in a way that it's not stored in tf state
+# Ideally, we'd just rotate this, but if you need to delete it,
+# make sure it's deleted with --force-delete-without-recovery so
+# that things aren't confused.
+createsecret() {
+  if aws secretsmanager describe-secret --secret-id "$1" >/dev/null 2>&1 ; then
+    echo "$1" secret already set up
+  else
+    aws secretsmanager create-secret --name "$1" --secret-string "$(aws secretsmanager get-random-password --exclude-punctuation --require-each-included-type | jq -r .RandomPassword)"
+  fi
+}
+
 REQUIREDBINARIES="
      terraform
      aws
@@ -42,6 +54,9 @@ RUN_BASE=$(pwd)
 # clean up tfstate files so that we get them from the backend
 find . -name terraform.tfstate -print0 | xargs -0 rm
 
+# create some passwords for use in the cluster
+createsecret "${TF_VAR_cluster_name}-rds-pw-gitlab"
+createsecret "${TF_VAR_cluster_name}-teleport-join-token"
 
 # do terraform!
 cd "$SCRIPT_BASE/terraform"

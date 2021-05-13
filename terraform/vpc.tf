@@ -15,16 +15,31 @@ resource "aws_vpc" "eks" {
   )
 }
 
-resource "aws_subnet" "eks" {
-  count = 2
+# have the db/service networks first because they probably won't grow
+resource "aws_subnet" "service" {
+  count = var.service_subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
   vpc_id                  = aws_vpc.eks.id
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.cluster_name}-service-${count.index}"
+  }
+}
+
+# have the eks subnets come last so that we can add more later.
+resource "aws_subnet" "eks" {
+  count = var.eks_subnet_count
+
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + var.service_subnet_count)
+  vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = true
 
   tags = map(
-    "Name", "${var.cluster_name}-node",
+    "Name", "${var.cluster_name}-node-${count.index}",
     "kubernetes.io/cluster/${var.cluster_name}", "shared",
     "kubernetes.io/role/elb", "1",
     "kubernetes.io/role/internal-elb", ""
@@ -45,6 +60,10 @@ resource "aws_route_table" "eks" {
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.eks.id
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-eks"
   }
 }
 

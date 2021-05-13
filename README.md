@@ -29,6 +29,10 @@ and dynamodb stuff for remote state and locking and then goes on to do the deplo
 Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 `gitlab-dev` is the name of your cluster.
 
+NOTE:  Right now, you must run this in the account that is hosting the live
+route53 domain that this uses.  Otherwise, it will write it's DNS entries into
+the other account's route53, and nothing will ever see them.
+
 ## Deploy
 
 `aws-vault exec sandbox-admin -- ./deploy.sh gitlab-dev` will deploy all the
@@ -43,9 +47,6 @@ you change it back to master before you make your PR.
 ## Delete
 
 `aws-vault exec sandbox-admin -- ./destroy.sh gitlab-dev`
-
-If it asks you for oidc stuff, just give it random stuff.
-That will go away once we go back to a single tf run.
 
 Also, some namespaces won't delete right off.  You will need to
 follow the procedure in here to make them actually go away:
@@ -123,6 +124,13 @@ helm upgrade gitlab gitlab/gitlab -f /tmp/gitlab.yaml -n gitlab
 and it worked, so that might be a useful tool.
 `helm history gitlab -n gitlab --debug` might also be a good tool
 to see how the rollout went.
+
+### Dashboard
+
+If you want to see what is going on in the cluster, and you are a k8s-admin,
+you can do `kubectl port-forward service/dashboard-kubernetes-dashboard 4430:443 -n kubernetes-dashboard`
+and then go to http://localhost:4430/ to see almost everything.  It is running in a
+read-only mode, with reduced privs, so it can't see things like secrets and so on.
 
 
 Have fun!!

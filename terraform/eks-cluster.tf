@@ -91,16 +91,6 @@ resource "aws_security_group" "eks-cluster" {
   }
 
   tags = {
-    Name = "terraform-eks"
+    Name = "${var.cluster_name}-eks-cluster"
   }
-}
-
-resource "aws_security_group_rule" "eks-cluster-ingress-workstation-https" {
-  cidr_blocks       = var.kubecontrolnets
-  description       = "Allow workstation to communicate with everything"
-  from_port         = 443
-  protocol          = "tcp"
-  security_group_id = aws_security_group.eks-cluster.id
-  to_port           = 443
-  type              = "ingress"
 }
