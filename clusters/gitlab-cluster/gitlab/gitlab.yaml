@@ -28,6 +28,7 @@ spec:
   values:
     global:
       hosts:
+        https: false
         gitlab:
           name: gitlab-webservice-default
           https: false
