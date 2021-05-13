@@ -56,6 +56,7 @@ find . -name terraform.tfstate -print0 | xargs -0 rm
 
 # create some passwords for use in the cluster
 createsecret "${TF_VAR_cluster_name}-rds-pw-gitlab"
+createsecret "${TF_VAR_cluster_name}-redis-pw-gitlab"
 createsecret "${TF_VAR_cluster_name}-teleport-join-token"
 
 # do terraform!

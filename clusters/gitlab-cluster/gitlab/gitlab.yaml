@@ -33,7 +33,14 @@ spec:
         password:
           secret: rds-pw-gitlab
           key: password
+      redis:
+        scheme: rediss
+        password:
+          secret: rds-pw-gitlab
+          key: redispw
     postgresql:
+      install: false
+    redis:
       install: false
   valuesFrom:
     - kind: ConfigMap
@@ -56,3 +63,11 @@ spec:
       name: terraform-gitlab-info
       valuesKey: pgport
       targetPath: global.psql.port
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: redisport
+      targetPath: global.redis.port
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: redishost
+      targetPath: global.redis.host

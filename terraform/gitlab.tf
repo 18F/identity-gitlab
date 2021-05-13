@@ -19,6 +19,8 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "certmanager-issuer-email" = var.certmanager-issuer
     "pghost"                   = aws_db_instance.gitlab.address
     "pgport"                   = aws_db_instance.gitlab.port
+    "redishost"                = aws_elasticache_replication_group.gitlab.primary_endpoint_address
+    "redisport"                = var.redis_port
   }
 }
 
@@ -26,6 +28,9 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
 # it is available when we do tf, but not stored in the state.
 data "aws_secretsmanager_secret_version" "rds-pw-gitlab" {
   secret_id = "${var.cluster_name}-rds-pw-gitlab"
+}
+data "aws_secretsmanager_secret_version" "redis-pw-gitlab" {
+  secret_id = "${var.cluster_name}-redis-pw-gitlab"
 }
 
 # XXX according to
@@ -53,6 +58,7 @@ resource "kubernetes_secret" "rds-pw-gitlab" {
 
   data = {
     password = data.aws_secretsmanager_secret_version.rds-pw-gitlab.secret_string
+    redispw  = data.aws_secretsmanager_secret_version.redis-pw-gitlab.secret_string
   }
 }
 
@@ -147,6 +153,54 @@ resource "aws_security_group" "gitlab-db" {
   }
 
   tags = {
-    Name = "${var.cluster_name} gitlab-db"
+    Name = "${var.cluster_name}-gitlab-db"
+  }
+}
+
+resource "aws_elasticache_replication_group" "gitlab" {
+  automatic_failover_enabled    = true
+  availability_zones            = [data.aws_availability_zones.available.names.0, data.aws_availability_zones.available.names.1]
+  replication_group_id          = "${var.cluster_name}-gitlab"
+  replication_group_description = "${var.cluster_name} redis for gitlab"
+  node_type                     = "cache.m4.large"
+  number_cache_clusters         = 2
+  parameter_group_name          = "default.redis6.x"
+  port                          = var.redis_port
+  subnet_group_name             = aws_elasticache_subnet_group.gitlab.id
+  security_group_ids            = [aws_security_group.gitlab-redis.id]
+  snapshot_retention_limit      = 30
+  at_rest_encryption_enabled    = true
+  transit_encryption_enabled    = true
+  auth_token                    = data.aws_secretsmanager_secret_version.redis-pw-gitlab.secret_string
+
+  tags = {
+    Name = "${var.cluster_name}-gitlab-redis"
+  }
+}
+
+resource "aws_elasticache_subnet_group" "gitlab" {
+  description = "${var.cluster_name} redis subnet group for gitlab"
+  name        = "${var.cluster_name}-redis-gitlab"
+  subnet_ids  = aws_subnet.service.*.id
+
+  tags = {
+    Name = "${var.cluster_name}-redis-gitlab"
+  }
+}
+
+resource "aws_security_group" "gitlab-redis" {
+  name        = "${var.cluster_name}-gitlab-redis"
+  description = "gitlab redis for ${var.cluster_name}"
+  vpc_id      = aws_vpc.eks.id
+
+  ingress {
+    from_port       = var.redis_port
+    to_port         = var.redis_port
+    protocol        = "tcp"
+    security_groups = [aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-gitlab-redis"
   }
 }
