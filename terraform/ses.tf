@@ -23,12 +23,12 @@ data "aws_iam_policy_document" "ses_email_user_policy" {
 }
 
 resource "aws_ses_domain_identity" "gitlab" {
-  domain = "gitlab.identitysandbox.com"
+  domain = "${var.cluster_name}.${var.domain}"
 }
 
 resource "aws_route53_record" "gitlab_amazonses_verification_record" {
   zone_id = data.aws_route53_zone.gitlab.zone_id
-  name    = "_amazonses.gitlab.identitysandbox.gov"
+  name    = "_amazonses.${var.cluster_name}.${var.domain}"
   type    = "TXT"
   ttl     = "600"
   records = [aws_ses_domain_identity.gitlab.verification_token]
