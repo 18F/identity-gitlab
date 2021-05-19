@@ -89,7 +89,8 @@ to clone a repo on the gitlab server.
 To allow automation to git clone, you will need to:
 - Make sure that there is a read-only deploy key set for your [project](https://docs.gitlab.com/ee/user/project/deploy_keys/#project-deploy-keys),
   or [globally](https://docs.gitlab.com/ee/user/project/deploy_keys/#public-deploy-keys).
-- Create a kubeconfig file that expires a long way in the future:
+- Create a `gitssh` user:  `tctl users add gitssh --roles=access,gitssh`
+- Create a kubeconfig file for `gitssh` that expires a long way in the future:
   ```
   kubectl exec -it deployment.apps/teleport-cluster -n teleport -- bash -c "tctl auth sign --ttl=8760h --user=gitssh --out=gitssh.kubeconfig ; cat gitssh.kubeconfig"
   ```
