@@ -58,8 +58,12 @@ fast sometimes for teleport or gitlab to tear it down.
 ## Further Setup
 
 ### Teleport
+In an ideal world, we would just expose gitlab to the world, and rely on ssh keys and gitlab auth for authentication.
+However, we can't really do that because it exposes us to all sorts of interesting attacks.  To avoid
+this, we are narrowing our attack surface to just [Teleport](https://github.com/gravitational/teleport),
+which will help us with excellent [FedRAMP controls](https://goteleport.com/teleport/how-it-works/fedramp-ssh-kubernetes/).
+
 To get access, you will need to configure teleport.
-- Create the teleport roles: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < ./teleport-roles.yaml`
 - Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root`
 - Go to the URL they give you and set up your 2fa
 - You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
@@ -67,6 +71,7 @@ To get access, you will need to configure teleport.
 - Longer term, we hope to configure more of this through code.
 
 #### git-ssh
+
 To allow people to clone repos from gitlab, make sure that they
 are added as a teleport user with `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <username> --roles=access,gitssh` and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
 to the end:
@@ -78,6 +83,35 @@ You may have to change the path to the `git-proxycommand.sh` script.
 
 They then should be able to do `git clone git@gitlab.gitlab.identitysandbox.gov:root/repo.git`
 to clone a repo on the gitlab server.
+
+#### Automated git-ssh
+
+To allow automation to git clone, you will need to:
+- Make sure that there is a read-only deploy key set for your [project](https://docs.gitlab.com/ee/user/project/deploy_keys/#project-deploy-keys),
+  or [globally](https://docs.gitlab.com/ee/user/project/deploy_keys/#public-deploy-keys).
+- Create a kubeconfig file that expires a long way in the future:
+  ```
+  kubectl exec -it deployment.apps/teleport-cluster -n teleport -- bash -c "tctl auth sign --ttl=8760h --user=gitssh --out=gitssh.kubeconfig ; cat gitssh.kubeconfig"
+  ```
+  You may have to say "y" to get it to overwrite an existing gitssh.kubeconfig file if you already did
+  this.  It will also emit the kubeconfig to stdout.
+- On the hosts doing automated git work, make sure that the kubeconfig and deploy key are in files
+  (maybe there's a magic cloud-config way to do this from secrets?), and create a `~/.ssh/config` file
+  that looks like this:
+  ```
+  Host gitlab-webservice-default
+    IdentityFile /path/to/deploy_key
+    ProxyCommand /path/to/git-proxycommand.sh --kubeconfig=/path/to/gitssh.kubeconfig
+  ```
+
+Then, when your automation does git clones/pulls from repos on gitlab (like `git@gitlab-webservice-default:root/test.git`),
+it will use the kubeconfig and deploy key to get code.
+
+Please consider rm'ing the deploy key and kubeconfig files once you are done
+with all your git activities.
+
+TODO:  It seems like this would be a really good thing to rotate on a regular basis.  
+Like make the keys work for 2 weeks, and rotate once a week.
 
 #### Editing users/roles
 
