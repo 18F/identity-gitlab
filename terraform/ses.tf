@@ -1,29 +1,14 @@
-resource "aws_iam_role_policy" "gitlab-ses-email" {
-  name   = "${var.cluster_name}-gitlab-ses-email"
-  role       = aws_iam_role.gitlab-ses.name
-  policy = data.aws_iam_policy_document.ses_email_role_policy.json
+resource "aws_iam_user_policy" "gitlab-ses-email" {
+  name = "${var.cluster_name}-gitlab-ses-email"
+  user = aws_iam_user.gitlab-ses.name
+  policy = data.aws_iam_policy_document.ses_email_user_policy.json
 }
 
-# XXX This is wrong, used as an example. Reviewer: what is right?
-resource "aws_iam_role" "gitlab-ses" {
-  name = "${var.cluster_name}-gitlab-ses-role"
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
+resource "aws_iam_user" "gitlab-ses" {
+  name = "${var.cluster_name}-gitlab-ses"
 }
 
-data "aws_iam_policy_document" "ses_email_role_policy" {
+data "aws_iam_policy_document" "ses_email_user_policy" {
   statement {
     sid    = "AllowSendEmail"
     effect = "Allow"
