@@ -38,7 +38,7 @@ resource "aws_ses_domain_dkim" "gitlab" {
   domain = aws_ses_domain_identity.gitlab.domain
 }
 
-resource "aws_route53_record" "example_amazonses_dkim_record" {
+resource "aws_route53_record" "gitlab_amazonses_dkim_record" {
   count   = 3
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "${element(aws_ses_domain_dkim.gitlab.dkim_tokens, count.index)}._domainkey"
