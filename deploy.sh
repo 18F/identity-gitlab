@@ -59,6 +59,19 @@ createsecret "${TF_VAR_cluster_name}-rds-pw-gitlab"
 createsecret "${TF_VAR_cluster_name}-redis-pw-gitlab"
 createsecret "${TF_VAR_cluster_name}-teleport-join-token"
 
+# get the latest list of security groups to allow into git-ssh
+# XXX this admin being hardcoded is not great.  It assumes that you have
+# aws-vault profiles like "sandbox-admin" that let you do
+# `aws ec2 describe-security-groups` to all of the environments that
+# need to be allowed into gitlab.
+rm -f /tmp/git-ssh-security-groups.yaml
+SAVED_AWS_VAULT="$AWS_VAULT"
+unset AWS_VAULT
+VAULTPROFILEPATTERN="${VAULTPROFILEPATTERN:-admin}"
+echo "gathering git-ssh ips from aws-vault profiles that match $VAULTPROFILEPATTERN"
+./discover-gitssh-sources.sh "$VAULTPROFILEPATTERN" > /tmp/git-ssh-ips.yaml
+AWS_VAULT="$SAVED_AWS_VAULT"
+
 # do terraform!
 cd "$SCRIPT_BASE/terraform"
 terraform init -backend-config="bucket=$BUCKET" \
@@ -67,6 +80,9 @@ terraform init -backend-config="bucket=$BUCKET" \
       -backend-config="region=$REGION" \
       -upgrade
 terraform apply
+
+# clean up
+rm -f /tmp/git-ssh-security-groups.yaml
 
 # This updates the kubeconfig so that we can access the cluster using kubectl
 aws eks update-kubeconfig --name "$TF_VAR_cluster_name"
