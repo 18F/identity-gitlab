@@ -77,7 +77,3 @@ spec:
       name: terraform-gitlab-info
       valuesKey: redishost
       targetPath: global.redis.host
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: git-ssh-security-groups
-      targetPath: nginx-ingress.controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-security-groups
