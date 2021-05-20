@@ -34,7 +34,7 @@ spec:
           https: false
           servicePort: 8181
       ingress:
-        enabled: true
+        enabled: false
       psql:
         password:
           secret: rds-pw-gitlab
