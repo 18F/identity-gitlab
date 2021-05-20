@@ -60,13 +60,15 @@ createsecret "${TF_VAR_cluster_name}-redis-pw-gitlab"
 createsecret "${TF_VAR_cluster_name}-teleport-join-token"
 
 # do terraform!
-cd "$SCRIPT_BASE/terraform"
+pushd "$SCRIPT_BASE/terraform"
 terraform init -backend-config="bucket=$BUCKET" \
       -backend-config="key=tf-state/$TF_VAR_cluster_name" \
       -backend-config="dynamodb_table=eks_terraform_locks" \
       -backend-config="region=$REGION" \
       -upgrade
 terraform apply
+popd
 
 # This updates the kubeconfig so that we can access the cluster using kubectl
 aws eks update-kubeconfig --name "$TF_VAR_cluster_name"
+kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < ./teleport-roles.yaml

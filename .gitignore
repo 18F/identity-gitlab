@@ -4,3 +4,5 @@ public.crt
 terraform/.terraform/
 terraform/dev.log
 terraform-state/.terraform/
+*.pem
+*.kubeconfig
