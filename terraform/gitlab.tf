@@ -219,11 +219,31 @@ resource "aws_security_group" "gitlab-ingress" {
   # allow ec2 hosts from our region in
   # XXX eventually, once the networkfw gets put in, we will scrape the NAT gateways and put those in.
   ingress {
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = data.aws_ip_ranges.ec2.cidr_blocks
+    ipv6_cidr_blocks = data.aws_ip_ranges.ec2.ipv6_cidr_blocks
+  }
+
+  # allow us to be able to get in
+  ingress {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    cidr_blocks      = data.aws_ip_ranges.ec2.cidr_blocks
-    ipv6_cidr_blocks = data.aws_ip_ranges.ec2.ipv6_cidr_blocks
+    security_groups = [aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
+  }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.vpc_cidr]
+  }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
