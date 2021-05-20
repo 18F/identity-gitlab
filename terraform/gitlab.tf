@@ -204,3 +204,19 @@ resource "aws_security_group" "gitlab-redis" {
     Name = "${var.cluster_name}-gitlab-redis"
   }
 }
+
+data "kubernetes_service" "gitlab-nginx-ingress-controller" {
+  depends_on = [aws_db_instance.gitlab]
+  metadata {
+    name      = "gitlab-nginx-ingress-controller"
+    namespace = "gitlab"
+  }
+}
+
+data "aws_lb" "gitlab-nginx-ingress-controller" {
+  name = data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname
+}
+
+output "gitlab-nginx-ingress-controller-arn" {
+  value       = data.aws_lb.gitlab-nginx-ingress-controller.arn
+}
