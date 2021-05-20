@@ -21,6 +21,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "pgport"                   = aws_db_instance.gitlab.port
     "redishost"                = aws_elasticache_replication_group.gitlab.primary_endpoint_address
     "redisport"                = var.redis_port
+    "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
   }
 }
 
@@ -205,18 +206,27 @@ resource "aws_security_group" "gitlab-redis" {
   }
 }
 
-data "kubernetes_service" "gitlab-nginx-ingress-controller" {
-  depends_on = [aws_db_instance.gitlab]
-  metadata {
-    name      = "gitlab-nginx-ingress-controller"
-    namespace = "gitlab"
+data "aws_ip_ranges" "ec2" {
+  regions  = [var.region]
+  services = ["ec2"]
+}
+
+resource "aws_security_group" "gitlab-ingress" {
+  name        = "${var.cluster_name}-gitlab-ingress"
+  description = "security group attached to gitlab ingress for ${var.cluster_name}"
+  vpc_id      = aws_vpc.eks.id
+
+  # allow ec2 hosts from our region in
+  # XXX eventually, once the networkfw gets put in, we will scrape the NAT gateways and put those in.
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    cidr_blocks      = data.aws_ip_ranges.ec2.cidr_blocks
+    ipv6_cidr_blocks = data.aws_ip_ranges.ec2.ipv6_cidr_blocks
   }
-}
 
-data "aws_lb" "gitlab-nginx-ingress-controller" {
-  name = data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname
-}
-
-output "gitlab-nginx-ingress-controller-arn" {
-  value       = data.aws_lb.gitlab-nginx-ingress-controller.arn
+  tags = {
+    Name = "${var.cluster_name}-gitlab-ingress"
+  }
 }
