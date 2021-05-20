@@ -20,7 +20,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
-kubectl "$1" port-forward service/gitlab-gitlab-shell 2222:22 -n gitlab >/dev/null 2>&1 &
+if [ -z "$1" ] ; then
+	kubectl port-forward service/gitlab-gitlab-shell 2222:22 -n gitlab >/dev/null 2>&1 &
+else
+	kubectl "$1" port-forward service/gitlab-gitlab-shell 2222:22 -n gitlab >/dev/null 2>&1 &
+fi
+
 while ! nc -z localhost 2222 >/dev/null 2>&1 ; do
 	sleep 0.1
 done

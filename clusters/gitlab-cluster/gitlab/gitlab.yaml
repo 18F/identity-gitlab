@@ -26,12 +26,12 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
-    nginx-ingress:
-      controller:
-        service:
-          annotations:
-            service.beta.kubernetes.io/aws-load-balancer-type: external
-            service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    # nginx-ingress:
+    #   controller:
+    #     service:
+    #       annotations:
+    #         service.beta.kubernetes.io/aws-load-balancer-type: external
+    #         service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
     global:
       hosts:
         https: false
@@ -83,7 +83,7 @@ spec:
       name: terraform-gitlab-info
       valuesKey: redishost
       targetPath: global.redis.host
-    # - kind: ConfigMap
-    #   name: terraform-gitlab-info
-    #   valuesKey: ingress-security-groups
-    #   targetPath: nginx-ingress.controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-security-groups
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: ingress-security-groups
+      targetPath: nginx-ingress.controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-security-groups
