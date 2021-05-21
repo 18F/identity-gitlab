@@ -42,7 +42,7 @@ spec:
         configureCertmanager: false
         tls:
           enabled: false
-        enabled: false
+        enabled: true
       psql:
         password:
           secret: rds-pw-gitlab
