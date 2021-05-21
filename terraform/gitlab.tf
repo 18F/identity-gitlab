@@ -13,9 +13,9 @@ data "kubernetes_service" "gitlab-nginx-ingress-controller" {
   }
 }
 
-resource "aws_route53_record" "gitssh" {
+resource "aws_route53_record" "gitlab" {
   zone_id = data.aws_route53_zone.gitlab.zone_id
-  name    = "gitssh-${var.cluster_name}"
+  name    = "gitlab-${var.cluster_name}"
   type    = "CNAME"
   ttl     = "300"
   records = [data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname]
@@ -248,6 +248,14 @@ resource "aws_security_group" "gitlab-ingress" {
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
+  }
+
+  # Allow the gitlab app to access itself over the ingress
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    cidr_blocks     = [var.vpc_cidr]
   }
 
   tags = {

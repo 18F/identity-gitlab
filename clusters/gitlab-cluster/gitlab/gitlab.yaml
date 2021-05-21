@@ -38,10 +38,6 @@ spec:
     global:
       hosts:
         https: false
-        gitlab:
-          name: gitlab-webservice-default
-          https: false
-          servicePort: 8181
       ingress:
         configureCertmanager: false
         tls:
@@ -69,6 +65,10 @@ spec:
       name: terraform-gitlab-info
       valuesKey: domain
       targetPath: global.hosts.domain
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: cluster_name
+      targetPath: global.hosts.hostSuffix
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: certmanager-issuer-email
