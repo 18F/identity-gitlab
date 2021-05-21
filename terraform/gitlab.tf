@@ -38,6 +38,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "redishost"                = aws_elasticache_replication_group.gitlab.primary_endpoint_address
     "redisport"                = var.redis_port
     "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
+    "fullhostname"             = "gitlab-${var.cluster_name}.${var.domain}"
   }
 }
 
@@ -250,13 +251,16 @@ resource "aws_security_group" "gitlab-ingress" {
     security_groups = [aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
   }
 
-  # Allow the gitlab app to access itself over the ingress
-  ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = [aws_security_group.eks-cluster]
-  }
+  # # XXX allow in runners?
+  # # Their IP addresses are coming from the node external IP addresses, so can't
+  # # be allowed in with a security group
+  # ingress {
+  #   from_port       = 80
+  #   to_port         = 80
+  #   protocol        = "tcp"
+  #   # ec2 ranges work, but this is too big
+  #   cidr_blocks      = data.aws_ip_ranges.ec2.cidr_blocks
+  # }
 
   tags = {
     Name = "${var.cluster_name}-gitlab-ingress"
