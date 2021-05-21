@@ -43,7 +43,7 @@ spec:
           # register with gitlab, but the ingress will still be named properly
           # because of the hostnameOverride below.
           name: gitlab-webservice-default
-           servicePort: 8181
+          servicePort: 8181
           https: false
       ingress:
         configureCertmanager: false
