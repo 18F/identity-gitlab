@@ -42,7 +42,9 @@ spec:
           # This is needed so that the runner will use the internal service to
           # register with gitlab, but the ingress will still be named properly
           # because of the hostnameOverride below.
-          name: gitlab-nginx-ingress-default-backend
+          name: gitlab-webservice-default
+           https: false
+           servicePort: 8181
           https: false
       ingress:
         configureCertmanager: false
