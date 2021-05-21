@@ -27,7 +27,7 @@ spec:
       interval: 1m
   values:
     nginx-ingress:
-      enabled: false
+      enabled: true
       # controller:
       #   service:
       #     annotations:
