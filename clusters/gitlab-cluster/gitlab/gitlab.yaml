@@ -38,18 +38,8 @@ spec:
     global:
       hosts:
         https: false
-        gitlab:
-          # This is needed so that the runner will use the internal service to
-          # register with gitlab, but the ingress will still be named properly
-          # because of the hostnameOverride below.
-          name: gitlab-webservice-default
-          servicePort: 8181
-          https: true
       ingress:
         configureCertmanager: false
-        tls:
-          enabled: false
-        enabled: true
       psql:
         password:
           secret: rds-pw-gitlab
