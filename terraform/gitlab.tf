@@ -39,6 +39,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "redisport"                = var.redis_port
     "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
     "fullhostname"             = "gitlab-${var.cluster_name}.${var.domain}"
+    "cert-arn"                 = aws_acm_certificate.gitlab.arn
   }
 }
 
@@ -228,6 +229,10 @@ data "aws_ip_ranges" "ec2" {
   services = ["ec2"]
 }
 
+locals {
+  nat_cidrs = formatlist("%s/32", aws_nat_gateway.nat.*.public_ip)
+}
+
 resource "aws_security_group" "gitlab-ingress" {
   name        = "${var.cluster_name}-gitlab-ingress"
   description = "security group attached to gitlab ingress for ${var.cluster_name}"
@@ -251,18 +256,71 @@ resource "aws_security_group" "gitlab-ingress" {
     security_groups = [aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
   }
 
-  # # XXX allow in runners?
-  # # Their IP addresses are coming from the node external IP addresses, so can't
-  # # be allowed in with a security group
-  # ingress {
-  #   from_port       = 80
-  #   to_port         = 80
-  #   protocol        = "tcp"
-  #   # ec2 ranges work, but this is too big
-  #   cidr_blocks      = data.aws_ip_ranges.ec2.cidr_blocks
-  # }
+  # this allows the gitlab runners to register with gitlab
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    # security_groups = [aws_security_group.eks-cluster.id]
+    cidr_blocks     = local.nat_cidrs
+  }
 
   tags = {
     Name = "${var.cluster_name}-gitlab-ingress"
   }
 }
+
+resource "aws_acm_certificate" "gitlab" {
+  domain_name       = "gitlab-${var.cluster_name}.${var.domain}"
+  validation_method = "DNS"
+
+  tags = {
+    Name = "gitlab-${var.cluster_name}.${var.domain}"
+  }
+}
+
+resource "aws_route53_record" "gitlab-validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.gitlab.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.gitlab.zone_id
+}
+
+resource "aws_acm_certificate_validation" "gitlab" {
+  certificate_arn         = aws_acm_certificate.gitlab.arn
+  validation_record_fqdns = [for record in aws_route53_record.gitlab-validation : record.fqdn]
+}
+
+# resource "aws_security_group_rule" "allow_gitlab_service" {
+#   count = var.service_subnet_count
+
+#   # this allows the gitlab runners to register with gitlab
+#   type              = "ingress"
+#   from_port         = 80
+#   to_port           = 80
+#   protocol          = "tcp"
+#   security_groups = [aws_nat_gateway.nat.*.XXX]
+#   security_group_id = aws_security_group.gitlab-ingress.id
+# }
+
+# resource "aws_security_group_rule" "allow_gitssh" {
+#   count = var.service_subnet_count
+
+#   # this allows the gitlab runners to check out code
+#   type              = "ingress"
+#   from_port         = 22
+#   to_port           = 22
+#   protocol          = "tcp"
+#   security_groups = [aws_nat_gateway.nat.*.XXX]
+#   security_group_id = aws_security_group.gitlab-ingress.id
+# }
