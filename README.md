@@ -76,43 +76,19 @@ To allow people to clone repos from gitlab, make sure that they
 are added as a teleport user with `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <username> --roles=access,gitssh` and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
 to the end:
 ```
-Host gitlab.gitlab.identitysandbox.gov
+Host gitlab-<clustername>.<domain>
   ProxyCommand ~/src/identity-gitlab/git-proxycommand.sh
 ```
 You may have to change the path to the `git-proxycommand.sh` script.
 
-They then should be able to do `git clone git@gitlab.gitlab.identitysandbox.gov:root/repo.git`
+They then should be able to do `git clone git@gitlab-<clustername>.<domain>:root/repo.git`
 to clone a repo on the gitlab server.
 
 #### Automated git-ssh
 
-To allow automation to git clone, you will need to:
-- Make sure that there is a read-only deploy key set for your [project](https://docs.gitlab.com/ee/user/project/deploy_keys/#project-deploy-keys),
-  or [globally](https://docs.gitlab.com/ee/user/project/deploy_keys/#public-deploy-keys).
-- Create a `gitssh` user:  `tctl users add gitssh --roles=access,gitssh`
-- Create a kubeconfig file for `gitssh` that expires a long way in the future:
-  ```
-  kubectl exec -it deployment.apps/teleport-cluster -n teleport -- bash -c "tctl auth sign --ttl=8760h --user=gitssh --out=gitssh.kubeconfig ; cat gitssh.kubeconfig"
-  ```
-  You may have to say "y" to get it to overwrite an existing gitssh.kubeconfig file if you already did
-  this.  It will also emit the kubeconfig to stdout.
-- On the hosts doing automated git work, make sure that the kubeconfig and deploy key are in files
-  (maybe there's a magic cloud-config way to do this from secrets?), and create a `~/.ssh/config` file
-  that looks like this:
-  ```
-  Host gitlab-webservice-default
-    IdentityFile /path/to/deploy_key
-    ProxyCommand /path/to/git-proxycommand.sh --kubeconfig=/path/to/gitssh.kubeconfig
-  ```
-
-Then, when your automation does git clones/pulls from repos on gitlab (like `git@gitlab-webservice-default:root/test.git`),
-it will use the kubeconfig and deploy key to get code.
-
-Please consider rm'ing the deploy key and kubeconfig files once you are done
-with all your git activities.
-
-TODO:  It seems like this would be a really good thing to rotate on a regular basis.  
-Like make the keys work for 2 weeks, and rotate once a week.
+The `gitlab-<clustername>.<domain>` endpoint should be plumbed up in the app environments
+if you have turned XXX on in tfvars, so things should be able to do a 
+`git clone git@gitlab-<clustername>.<domain>:root/repo.git` without hinderance.
 
 #### Editing users/roles
 

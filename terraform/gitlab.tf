@@ -264,11 +264,20 @@ resource "aws_security_group" "gitlab-ingress" {
     cidr_blocks     = local.nat_cidrs
   }
 
+  # this allows the gitlab runners to git pull
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    cidr_blocks     = local.nat_cidrs
+  }
+
   tags = {
     Name = "${var.cluster_name}-gitlab-ingress"
   }
 }
 
+# cert for gitlab, attached to the network lb
 resource "aws_acm_certificate" "gitlab" {
   domain_name       = "gitlab-${var.cluster_name}.${var.domain}"
   validation_method = "DNS"
@@ -299,3 +308,27 @@ resource "aws_acm_certificate_validation" "gitlab" {
   certificate_arn         = aws_acm_certificate.gitlab.arn
   validation_record_fqdns = [for record in aws_route53_record.gitlab-validation : record.fqdn]
 }
+
+# until https://github.com/hashicorp/terraform-provider-aws/issues/12265 gets solved:
+data "aws_lb" "gitlab" {
+  name = regex("^(?P<name>.+)-.+\\.elb\\..+\\.amazonaws\\.com", data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname)["name"]
+}
+
+# VPC endpoint service so that we can set up VPC endpoints that go to this
+resource "aws_vpc_endpoint_service" "gitlab" {
+  acceptance_required        = false
+  allowed_principals         = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator", "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform", "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform"]
+  network_load_balancer_arns = [data.aws_lb.gitlab.arn]
+
+  tags = {
+    Name = "gitlab-${var.cluster_name}.${var.domain}"
+  }
+}
+
+# # This is an example of what you would need to plug into the environments
+# # to be able to talk to the gitlab service.
+# resource "aws_vpc_endpoint" "gitlab" {
+#   service_name      = "XXX from output.gitlab-privatelink-service_name"
+#   subnet_ids        = [aws_subnet.XXX.id]
+#   vpc_id            = aws_vpc.XXX.id
+# }
