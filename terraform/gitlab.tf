@@ -261,7 +261,6 @@ resource "aws_security_group" "gitlab-ingress" {
     from_port       = 443
     to_port         = 443
     protocol        = "tcp"
-    security_groups = [aws_security_group.eks-cluster.id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
     cidr_blocks     = local.nat_cidrs
   }
 
@@ -300,27 +299,3 @@ resource "aws_acm_certificate_validation" "gitlab" {
   certificate_arn         = aws_acm_certificate.gitlab.arn
   validation_record_fqdns = [for record in aws_route53_record.gitlab-validation : record.fqdn]
 }
-
-# resource "aws_security_group_rule" "allow_gitlab_service" {
-#   count = var.service_subnet_count
-
-#   # this allows the gitlab runners to register with gitlab
-#   type              = "ingress"
-#   from_port         = 80
-#   to_port           = 80
-#   protocol          = "tcp"
-#   security_groups = [aws_nat_gateway.nat.*.XXX]
-#   security_group_id = aws_security_group.gitlab-ingress.id
-# }
-
-# resource "aws_security_group_rule" "allow_gitssh" {
-#   count = var.service_subnet_count
-
-#   # this allows the gitlab runners to check out code
-#   type              = "ingress"
-#   from_port         = 22
-#   to_port           = 22
-#   protocol          = "tcp"
-#   security_groups = [aws_nat_gateway.nat.*.XXX]
-#   security_group_id = aws_security_group.gitlab-ingress.id
-# }
