@@ -91,7 +91,7 @@ resource "aws_route_table_association" "public_eks" {
 
 resource "aws_eip" "nat_gateway" {
   count = var.service_subnet_count
-  vpc = true
+  vpc   = true
 }
 
 resource "aws_nat_gateway" "nat" {
@@ -122,6 +122,6 @@ resource "aws_route_table" "eks" {
 resource "aws_route_table_association" "eks" {
   count = var.eks_subnet_count
 
-  subnet_id     = aws_subnet.eks.*.id[count.index]
+  subnet_id      = aws_subnet.eks.*.id[count.index]
   route_table_id = aws_route_table.eks.*.id[count.index]
 }
