@@ -258,10 +258,10 @@ resource "aws_security_group" "gitlab-ingress" {
 
   # this allows the gitlab runners to register with gitlab
   ingress {
-    from_port       = 80
-    to_port         = 80
+    from_port       = 443
+    to_port         = 443
     protocol        = "tcp"
-    # security_groups = [aws_security_group.eks-cluster.id]
+    security_groups = [aws_security_group.eks-cluster.id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
     cidr_blocks     = local.nat_cidrs
   }
 
