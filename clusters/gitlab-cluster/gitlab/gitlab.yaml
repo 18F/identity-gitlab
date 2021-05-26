@@ -19,22 +19,72 @@ spec:
   chart:
     spec:
       chart: gitlab
-      version: "4.11.3"
+      version: "4.11.4"
       sourceRef:
         kind: HelmRepository
         name: gitlab
         namespace: flux-system
       interval: 1m
   values:
-    global:
-      hosts:
-        https: false
-        gitlab:
-          name: gitlab-webservice-default
-          https: false
-          servicePort: 8181
-      ingress:
+    nginx-ingress:
+      controller:
+        scope:
+          enabled: true
+        affinity:
+          podAntiAffinity:
+            preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                    - gitlab-nginx
+                  - key: app.kubernetes.io/instance
+                    operator: In
+                    values:
+                    - gitlab-nginx
+                  - key: app.kubernetes.io/component
+                    operator: In
+                    values:
+                    - controller
+                topologyKey: kubernetes.io/hostname
+        service:
+          externalTrafficPolicy: Cluster
+          enableHttp: false
+          targetPorts:
+            https: http
+          annotations:
+            service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: Name=gitlab-nginx,class=nginx,role=test,vpc=test
+            service.beta.kubernetes.io/aws-load-balancer-internal: 0.0.0.0/0
+            service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+            service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+            service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
+            service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+        config:
+          use-forwarded-headers: "true"
+          client-header-timeout: "420"
+          proxy-stream-timeout: "200s"
+          client-body-timeout: "420"
+        headers:
+          X-Forwarded-Ssl: "on"
+        stats:
+          enabled: true
+        metrics:
+          enabled: true
+      podSecurityPolicy:
         enabled: true
+      serviceAccount:
+        create: true
+    certmanager:
+      install: false
+    global:
+      ingress:
+        enabled: false
+        configureCertmanager: false
+        tls:
+          enabled: false
       psql:
         password:
           secret: rds-pw-gitlab
@@ -59,6 +109,14 @@ spec:
       targetPath: global.hosts.domain
     - kind: ConfigMap
       name: terraform-gitlab-info
+      valuesKey: cluster_name
+      targetPath: global.hosts.hostSuffix
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: fullhostname
+      targetPath: global.hosts.gitlab.hostnameOverride
+    - kind: ConfigMap
+      name: terraform-gitlab-info
       valuesKey: certmanager-issuer-email
       targetPath: certmanager-issuer.email
     - kind: ConfigMap
@@ -77,3 +135,11 @@ spec:
       name: terraform-gitlab-info
       valuesKey: redishost
       targetPath: global.redis.host
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: ingress-security-groups
+      targetPath: nginx-ingress.controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-security-groups
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: cert-arn
+      targetPath: nginx-ingress.controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert

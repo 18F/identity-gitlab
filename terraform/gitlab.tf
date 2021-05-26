@@ -5,6 +5,22 @@ resource "kubernetes_namespace" "gitlab" {
   }
 }
 
+data "kubernetes_service" "gitlab-nginx-ingress-controller" {
+  depends_on = [aws_db_instance.gitlab]
+  metadata {
+    name      = "gitlab-nginx-ingress-controller"
+    namespace = "gitlab"
+  }
+}
+
+resource "aws_route53_record" "gitlab" {
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "gitlab-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname]
+}
+
 # This configmap is where we can pass stuff into flux/helm from terraform
 resource "kubernetes_config_map" "terraform-gitlab-info" {
   depends_on = [kubernetes_namespace.gitlab]
@@ -21,6 +37,9 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "pgport"                   = aws_db_instance.gitlab.port
     "redishost"                = aws_elasticache_replication_group.gitlab.primary_endpoint_address
     "redisport"                = var.redis_port
+    "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
+    "fullhostname"             = "gitlab-${var.cluster_name}.${var.domain}"
+    "cert-arn"                 = aws_acm_certificate.gitlab.arn
   }
 }
 
@@ -202,5 +221,98 @@ resource "aws_security_group" "gitlab-redis" {
 
   tags = {
     Name = "${var.cluster_name}-gitlab-redis"
+  }
+}
+
+locals {
+  nat_cidrs = formatlist("%s/32", aws_nat_gateway.nat.*.public_ip)
+}
+
+resource "aws_security_group" "gitlab-ingress" {
+  name        = "${var.cluster_name}-gitlab-ingress"
+  description = "security group attached to gitlab ingress for ${var.cluster_name}"
+  vpc_id      = aws_vpc.eks.id
+
+  # allow kubernetes port-forward in to git-ssh
+  ingress {
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
+    security_groups = [aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
+  }
+
+  # this allows the gitlab runners to register with gitlab
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = local.nat_cidrs
+  }
+
+  # this allows the gitlab runners to git pull
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = local.nat_cidrs
+  }
+
+  tags = {
+    Name = "${var.cluster_name}-gitlab-ingress"
+  }
+}
+
+# cert for gitlab, attached to the network lb
+resource "aws_acm_certificate" "gitlab" {
+  domain_name       = "gitlab-${var.cluster_name}.${var.domain}"
+  validation_method = "DNS"
+
+  tags = {
+    Name = "gitlab-${var.cluster_name}.${var.domain}"
+  }
+}
+
+resource "aws_route53_record" "gitlab-validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.gitlab.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.gitlab.zone_id
+}
+
+resource "aws_acm_certificate_validation" "gitlab" {
+  certificate_arn         = aws_acm_certificate.gitlab.arn
+  validation_record_fqdns = [for record in aws_route53_record.gitlab-validation : record.fqdn]
+}
+
+# until https://github.com/hashicorp/terraform-provider-aws/issues/12265 gets solved:
+data "aws_lb" "gitlab" {
+  name = regex("^(?P<name>.+)-.+\\.elb\\..+\\.amazonaws\\.com", data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname)["name"]
+}
+
+locals {
+  fulladmins   = formatlist("arn:aws:iam::%s:role/FullAdministrator", var.accountids)
+  autotfs      = formatlist("arn:aws:iam::%s:role/AutoTerraform", var.accountids)
+  terraformers = formatlist("arn:aws:iam::%s:role/Terraform", var.accountids)
+  principals   = concat(local.fulladmins, local.autotfs, local.terraformers)
+}
+
+# VPC endpoint service so that we can set up VPC endpoints that go to this
+resource "aws_vpc_endpoint_service" "gitlab" {
+  acceptance_required        = false
+  allowed_principals         = local.principals
+  network_load_balancer_arns = [data.aws_lb.gitlab.arn]
+
+  tags = {
+    Name = "gitlab-${var.cluster_name}.${var.domain}"
   }
 }

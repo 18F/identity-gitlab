@@ -73,3 +73,9 @@ variable "rds_backup_window" {
 variable "redis_port" {
   default = 6379
 }
+
+variable "accountids" {
+  type        = list(string)
+  description = "list of AWS account ids that we should allow to find the gitlab privatelink service"
+  # export TF_VAR_accountids='["1234", "2345", "5678"]'
+}
