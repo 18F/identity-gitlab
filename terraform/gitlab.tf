@@ -315,10 +315,17 @@ data "aws_lb" "gitlab" {
   name = regex("^(?P<name>.+)-.+\\.elb\\..+\\.amazonaws\\.com", data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname)["name"]
 }
 
+locals {
+  fulladmins   = formatlist("arn:aws:iam::%s:role/FullAdministrator", var.accountids)
+  autotfs      = formatlist("arn:aws:iam::%s:role/AutoTerraform", var.accountids)
+  terraformers = formatlist("arn:aws:iam::%s:role/Terraform", var.accountids)
+  principals   = concat(local.fulladmins, local.autotfs, local.terraformers)
+}
+
 # VPC endpoint service so that we can set up VPC endpoints that go to this
 resource "aws_vpc_endpoint_service" "gitlab" {
   acceptance_required        = false
-  allowed_principals         = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator", "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform", "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform"]
+  allowed_principals         = local.principals
   network_load_balancer_arns = [data.aws_lb.gitlab.arn]
 
   tags = {
