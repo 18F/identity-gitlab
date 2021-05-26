@@ -87,8 +87,10 @@ to clone a repo on the gitlab server.
 #### Automated git-ssh
 
 The `gitlab-<clustername>.<domain>` endpoint should be plumbed up in the app environments
-if you have turned XXX on in tfvars, so things should be able to do a 
-`git clone git@gitlab-<clustername>.<domain>:root/repo.git` without hinderance.
+if you have turned `gitlab_enabled` on in tfvars, so things should be able to do a 
+`git clone git@gitlab:root/repo.git` without hinderance.  *NOTE:* you will need to use
+`gitlab` for the hostname instead of the proper `gitlab-<clustername>.<domain>` domain
+because you need to get to the privatelink instead of the real load balancer endpoint.
 
 #### Editing users/roles
 

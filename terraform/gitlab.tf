@@ -332,11 +332,3 @@ resource "aws_vpc_endpoint_service" "gitlab" {
     Name = "gitlab-${var.cluster_name}.${var.domain}"
   }
 }
-
-# # This is an example of what you would need to plug into the environments
-# # to be able to talk to the gitlab service.
-# resource "aws_vpc_endpoint" "gitlab" {
-#   service_name      = "XXX from output.gitlab-privatelink-service_name"
-#   subnet_ids        = [aws_subnet.XXX.id]
-#   vpc_id            = aws_vpc.XXX.id
-# }
