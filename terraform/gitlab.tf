@@ -224,11 +224,6 @@ resource "aws_security_group" "gitlab-redis" {
   }
 }
 
-data "aws_ip_ranges" "ec2" {
-  regions  = [var.region]
-  services = ["ec2"]
-}
-
 locals {
   nat_cidrs = formatlist("%s/32", aws_nat_gateway.nat.*.public_ip)
 }
@@ -237,17 +232,6 @@ resource "aws_security_group" "gitlab-ingress" {
   name        = "${var.cluster_name}-gitlab-ingress"
   description = "security group attached to gitlab ingress for ${var.cluster_name}"
   vpc_id      = aws_vpc.eks.id
-
-  # # allow ec2 hosts from our region in
-  # # XXX Eventually, once the networkfw gets put in, we will scrape the NAT gateways and put those in.
-  # # XXX OR we can remove this block entirely if privatelink works.
-  # ingress {
-  #   from_port        = 22
-  #   to_port          = 22
-  #   protocol         = "tcp"
-  #   cidr_blocks      = data.aws_ip_ranges.ec2.cidr_blocks
-  #   ipv6_cidr_blocks = data.aws_ip_ranges.ec2.ipv6_cidr_blocks
-  # }
 
   # allow kubernetes port-forward in to git-ssh
   ingress {
