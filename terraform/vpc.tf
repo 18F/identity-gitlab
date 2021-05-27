@@ -15,12 +15,12 @@ resource "aws_vpc" "eks" {
   )
 }
 
-# have the db/service networks first because they probably won't grow
+# db/service networks
 resource "aws_subnet" "service" {
-  count = var.service_subnet_count
+  count = var.subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
+  cidr_block              = cidrsubnet(var.service_cidr, ceil(log(2, var.subnet_count)), count.index)
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = false
 
@@ -31,10 +31,10 @@ resource "aws_subnet" "service" {
 
 # Public subnets to land loadbalancers/NAT/etc.
 resource "aws_subnet" "public_eks" {
-  count = var.service_subnet_count
+  count = var.subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index + var.service_subnet_count)
+  cidr_block              = cidrsubnet(var.public_cidr, ceil(log(2, var.subnet_count)), count.index)
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = true
 
@@ -45,12 +45,12 @@ resource "aws_subnet" "public_eks" {
   )
 }
 
-# have the eks subnets come last so that we can add more later.
+# eks subnets
 resource "aws_subnet" "eks" {
-  count = var.eks_subnet_count
+  count = var.subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + 2)
+  cidr_block              = cidrsubnet(var.eks_cidr, ceil(log(2, var.subnet_count)), count.index)
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = false
 
@@ -70,35 +70,37 @@ resource "aws_internet_gateway" "eks" {
 }
 
 resource "aws_route_table" "public_eks" {
+  count  = var.subnet_count
   vpc_id = aws_vpc.eks.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.eks.id
+    gateway_id = data.aws_vpc_endpoint.networkfw.id
   }
 
   tags = {
-    Name = "${var.cluster_name}-eks"
+    Name = "${var.cluster_name}-eks-${count.index}"
   }
 }
 
 resource "aws_route_table_association" "public_eks" {
-  count = var.service_subnet_count
+  count = var.subnet_count
 
-  subnet_id      = aws_subnet.public_eks.*.id[count.index]
-  route_table_id = aws_route_table.public_eks.id
+  subnet_id      = aws_subnet.public_eks[count.index].id
+  route_table_id = aws_route_table.public_eks[count.index].id
 }
 
 resource "aws_eip" "nat_gateway" {
-  count = var.service_subnet_count
+  count = var.subnet_count
   vpc   = true
 }
 
 resource "aws_nat_gateway" "nat" {
-  count = var.service_subnet_count
+  count      = var.subnet_count
+  depends_on = [aws_internet_gateway.eks]
 
-  allocation_id = aws_eip.nat_gateway.*.id[count.index]
-  subnet_id     = aws_subnet.public_eks.*.id[count.index]
+  allocation_id = aws_eip.nat_gateway[count.index].id
+  subnet_id     = aws_subnet.public_eks[count.index].id
 
   tags = {
     Name = "${var.cluster_name} NAT ${count.index}"
@@ -106,12 +108,12 @@ resource "aws_nat_gateway" "nat" {
 }
 
 resource "aws_route_table" "eks" {
-  count = var.eks_subnet_count
+  count = var.subnet_count
 
   vpc_id = aws_vpc.eks.id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat.*.id[count.index]
+    nat_gateway_id = aws_nat_gateway.nat[count.index].id
   }
 
   tags = {
@@ -120,8 +122,8 @@ resource "aws_route_table" "eks" {
 }
 
 resource "aws_route_table_association" "eks" {
-  count = var.eks_subnet_count
+  count = var.subnet_count
 
-  subnet_id      = aws_subnet.eks.*.id[count.index]
-  route_table_id = aws_route_table.eks.*.id[count.index]
+  subnet_id      = aws_subnet.eks[count.index].id
+  route_table_id = aws_route_table.eks[count.index].id
 }

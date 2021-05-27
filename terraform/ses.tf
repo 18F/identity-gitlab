@@ -1,6 +1,6 @@
 resource "aws_iam_user_policy" "gitlab-ses-email" {
-  name = "${var.cluster_name}-gitlab-ses-email"
-  user = aws_iam_user.gitlab-ses.name
+  name   = "${var.cluster_name}-gitlab-ses-email"
+  user   = aws_iam_user.gitlab-ses.name
   policy = data.aws_iam_policy_document.ses_email_user_policy.json
 }
 
