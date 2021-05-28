@@ -75,7 +75,7 @@ resource "aws_route_table" "public_eks" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = data.aws_vpc_endpoint.networkfw.id
+    gateway_id = data.aws_vpc_endpoint.networkfw[count.index].id
   }
 
   tags = {

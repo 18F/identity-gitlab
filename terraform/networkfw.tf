@@ -87,11 +87,10 @@ resource "aws_route_table_association" "networkfw" {
 }
 
 data "aws_vpc_endpoint" "networkfw" {
+  count      = var.subnet_count
   depends_on = [aws_networkfirewall_firewall.networkfw]
   vpc_id     = aws_vpc.eks.id
-  tags = {
-    Name = "Network Firewall for ${var.cluster_name}-gitlab"
-  }
+  id         = [for x in aws_networkfirewall_firewall.networkfw.firewall_status.0.sync_states: x.attachment.0.endpoint_id if x.availability_zone == data.aws_availability_zones.available.names[count.index]][0]
 }
 
 resource "aws_cloudwatch_log_group" "fw_log_group_alerts" {
