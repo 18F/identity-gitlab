@@ -8,6 +8,8 @@
 
 resource "aws_vpc" "eks" {
   cidr_block = var.vpc_cidr
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = map(
     "Name", "${var.cluster_name}-vpc",
@@ -69,6 +71,26 @@ resource "aws_internet_gateway" "eks" {
   }
 }
 
+resource "aws_route_table" "eks_igw" {
+  vpc_id = aws_vpc.eks.id
+  dynamic "route" {
+    for_each = aws_subnet.public_eks.*.cidr_block
+    content {
+      cidr_block      = route.value
+      vpc_endpoint_id = data.aws_vpc_endpoint.networkfw[route.key].id
+    }
+  }
+
+  tags = {
+    Name = "${var.cluster_name} routes back to NAT"
+  }
+}
+
+resource "aws_route_table_association" "eks_igw" {
+  gateway_id     = aws_internet_gateway.eks.id
+  route_table_id = aws_route_table.eks_igw.id
+}
+
 resource "aws_route_table" "public_eks" {
   count  = var.subnet_count
   vpc_id = aws_vpc.eks.id
@@ -79,7 +101,7 @@ resource "aws_route_table" "public_eks" {
   }
 
   tags = {
-    Name = "${var.cluster_name}-eks-${count.index}"
+    Name = "${var.cluster_name}-public_eks-${count.index}"
   }
 }
 
@@ -117,7 +139,7 @@ resource "aws_route_table" "eks" {
   }
 
   tags = {
-    Name = "${var.cluster_name} route to NAT ${count.index}"
+    Name = "${var.cluster_name} eks route to NAT ${count.index}"
   }
 }
 
