@@ -17,21 +17,21 @@ resource "aws_vpc" "eks" {
   )
 }
 
-# db/service networks
-resource "aws_subnet" "service" {
+# Public subnets to land NAT.
+resource "aws_subnet" "nat" {
   count = var.subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(var.service_cidr, ceil(log(2, var.subnet_count)), count.index)
+  cidr_block              = cidrsubnet(var.nat_cidr, ceil(log(2, var.subnet_count)), count.index)
   vpc_id                  = aws_vpc.eks.id
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
 
-  tags = {
-    Name = "${var.cluster_name}-service-${count.index}"
-  }
+  tags = map(
+    "Name", "${var.cluster_name}-nat-${count.index}",
+  )
 }
 
-# Public subnets to land loadbalancers/NAT/etc.
+# Public subnets to land loadbalancers/etc.
 resource "aws_subnet" "public_eks" {
   count = var.subnet_count
 
@@ -63,6 +63,22 @@ resource "aws_subnet" "eks" {
   )
 }
 
+# db/service networks
+resource "aws_subnet" "service" {
+  count = var.subnet_count
+
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = cidrsubnet(var.service_cidr, ceil(log(2, var.subnet_count)), count.index)
+  vpc_id                  = aws_vpc.eks.id
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.cluster_name}-service-${count.index}"
+  }
+}
+
+
+# Internet Gateway
 resource "aws_internet_gateway" "eks" {
   vpc_id = aws_vpc.eks.id
 
@@ -71,10 +87,11 @@ resource "aws_internet_gateway" "eks" {
   }
 }
 
+# route traffic destined for the NAT gateways to the NAT endpoints from the IGW
 resource "aws_route_table" "eks_igw" {
   vpc_id = aws_vpc.eks.id
   dynamic "route" {
-    for_each = aws_subnet.public_eks.*.cidr_block
+    for_each = aws_subnet.nat.*.cidr_block
     content {
       cidr_block      = route.value
       vpc_endpoint_id = data.aws_vpc_endpoint.networkfw[route.key].id
@@ -86,18 +103,20 @@ resource "aws_route_table" "eks_igw" {
   }
 }
 
+# apply the IGW routes to the IGW
 resource "aws_route_table_association" "eks_igw" {
   gateway_id     = aws_internet_gateway.eks.id
   route_table_id = aws_route_table.eks_igw.id
 }
 
+# the public subnet's default route is out through the IGW
 resource "aws_route_table" "public_eks" {
   count  = var.subnet_count
   vpc_id = aws_vpc.eks.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    vpc_endpoint_id = data.aws_vpc_endpoint.networkfw[count.index].id
+    gateway_id = aws_internet_gateway.eks.id
   }
 
   tags = {
@@ -105,6 +124,7 @@ resource "aws_route_table" "public_eks" {
   }
 }
 
+# apply the public subnet route table to the public subnet
 resource "aws_route_table_association" "public_eks" {
   count = var.subnet_count
 
@@ -122,11 +142,32 @@ resource "aws_nat_gateway" "nat" {
   depends_on = [aws_internet_gateway.eks]
 
   allocation_id = aws_eip.nat_gateway[count.index].id
-  subnet_id     = aws_subnet.public_eks[count.index].id
+  subnet_id     = aws_subnet.nat[count.index].id
 
   tags = {
     Name = "${var.cluster_name} NAT ${count.index}"
   }
+}
+
+resource "aws_route_table" "nat" {
+  count = var.subnet_count
+
+  vpc_id = aws_vpc.eks.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    vpc_endpoint_id = data.aws_vpc_endpoint.networkfw[count.index].id
+  }
+
+  tags = {
+    Name = "${var.cluster_name} NAT to igw ${count.index}"
+  }
+}
+
+resource "aws_route_table_association" "nat" {
+  count = var.subnet_count
+
+  subnet_id      = aws_subnet.nat[count.index].id
+  route_table_id = aws_route_table.nat[count.index].id
 }
 
 resource "aws_route_table" "eks" {

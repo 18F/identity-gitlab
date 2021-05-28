@@ -37,6 +37,11 @@ variable "fw_cidr" {
   description = "cidr block for firewalls"
 }
 
+variable "nat_cidr" {
+  default     = "10.0.6.0/23"
+  description = "cidr block for NAT"
+}
+
 variable "eks_cidr" {
   default     = "10.0.8.0/21"
   description = "private cidr block for EKS"
