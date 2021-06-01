@@ -4,3 +4,4 @@ domainAllowList:
 - github.com
 - api.github.com
 - k8s.gcr.io
+- quay.io
