@@ -7,7 +7,7 @@
 #
 
 resource "aws_vpc" "eks" {
-  cidr_block = var.vpc_cidr
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -154,7 +154,7 @@ resource "aws_route_table" "nat" {
 
   vpc_id = aws_vpc.eks.id
   route {
-    cidr_block     = "0.0.0.0/0"
+    cidr_block      = "0.0.0.0/0"
     vpc_endpoint_id = data.aws_vpc_endpoint.networkfw[count.index].id
   }
 
