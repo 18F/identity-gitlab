@@ -12,3 +12,11 @@ domainAllowList:
 - storage.googleapis.com
 - pkg-containers.githubusercontent.com
 - .teleport.cluster.local
+- auth.docker.io
+- kubernetes.github.io
+- charts.gitlab.io
+- aws.github.io
+- registry.gitlab.com
+- production.cloudflare.docker.com
+- github-releases.githubusercontent.com
+- gitlab.com
