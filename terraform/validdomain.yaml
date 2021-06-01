@@ -5,3 +5,10 @@ domainAllowList:
 - api.github.com
 - k8s.gcr.io
 - quay.io
+- public.ecr.aws
+- ghcr.io
+- registry-1.docker.io
+- .cloudfront.net
+- storage.googleapis.com
+- pkg-containers.githubusercontent.com
+- .teleport.cluster.local

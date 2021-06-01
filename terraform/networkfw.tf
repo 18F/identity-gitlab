@@ -1,5 +1,6 @@
 locals {
   yaml_data = yamldecode(file("${path.module}/validdomain.yaml"))
+  domainlist = concat(local.yaml_data.domainAllowList, [".${var.domain}"])
 }
 
 resource "aws_networkfirewall_rule_group" "networkfw" {
@@ -12,7 +13,7 @@ resource "aws_networkfirewall_rule_group" "networkfw" {
       rules_source_list {
         generated_rules_type = "ALLOWLIST"
         target_types         = ["HTTP_HOST", "TLS_SNI"]
-        targets              = local.yaml_data.domainAllowList
+        targets              = local.domainlist
       }
     }
   }
