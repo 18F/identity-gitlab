@@ -7,7 +7,9 @@
 #
 
 resource "aws_vpc" "eks" {
-  cidr_block = var.vpc_cidr
+  cidr_block           = var.vpc_cidr
+  enable_dns_support   = true
+  enable_dns_hostnames = true
 
   tags = map(
     "Name", "${var.cluster_name}-vpc",
@@ -15,26 +17,26 @@ resource "aws_vpc" "eks" {
   )
 }
 
-# have the db/service networks first because they probably won't grow
-resource "aws_subnet" "service" {
-  count = var.service_subnet_count
+# Public subnets to land NAT.
+resource "aws_subnet" "nat" {
+  count = var.subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index)
+  cidr_block              = cidrsubnet(var.nat_cidr, ceil(log(2, var.subnet_count)), count.index)
   vpc_id                  = aws_vpc.eks.id
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
 
-  tags = {
-    Name = "${var.cluster_name}-service-${count.index}"
-  }
+  tags = map(
+    "Name", "${var.cluster_name}-nat-${count.index}",
+  )
 }
 
-# Public subnets to land loadbalancers/NAT/etc.
+# Public subnets to land loadbalancers/etc.
 resource "aws_subnet" "public_eks" {
-  count = var.service_subnet_count
+  count = var.subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, count.index + var.service_subnet_count)
+  cidr_block              = cidrsubnet(var.public_cidr, ceil(log(2, var.subnet_count)), count.index)
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = true
 
@@ -45,12 +47,12 @@ resource "aws_subnet" "public_eks" {
   )
 }
 
-# have the eks subnets come last so that we can add more later.
+# eks subnets
 resource "aws_subnet" "eks" {
-  count = var.eks_subnet_count
+  count = var.subnet_count
 
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  cidr_block              = cidrsubnet(var.vpc_cidr, 6, count.index + 2)
+  cidr_block              = cidrsubnet(var.eks_cidr, ceil(log(2, var.subnet_count)), count.index)
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = false
 
@@ -61,6 +63,22 @@ resource "aws_subnet" "eks" {
   )
 }
 
+# db/service networks
+resource "aws_subnet" "service" {
+  count = var.subnet_count
+
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = cidrsubnet(var.service_cidr, ceil(log(2, var.subnet_count)), count.index)
+  vpc_id                  = aws_vpc.eks.id
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "${var.cluster_name}-service-${count.index}"
+  }
+}
+
+
+# Internet Gateway
 resource "aws_internet_gateway" "eks" {
   vpc_id = aws_vpc.eks.id
 
@@ -69,7 +87,31 @@ resource "aws_internet_gateway" "eks" {
   }
 }
 
+# route traffic destined for the NAT gateways to the NAT endpoints from the IGW
+resource "aws_route_table" "eks_igw" {
+  vpc_id = aws_vpc.eks.id
+  dynamic "route" {
+    for_each = aws_subnet.nat.*.cidr_block
+    content {
+      cidr_block      = route.value
+      vpc_endpoint_id = data.aws_vpc_endpoint.networkfw[route.key].id
+    }
+  }
+
+  tags = {
+    Name = "${var.cluster_name} routes back to NAT"
+  }
+}
+
+# apply the IGW routes to the IGW
+resource "aws_route_table_association" "eks_igw" {
+  gateway_id     = aws_internet_gateway.eks.id
+  route_table_id = aws_route_table.eks_igw.id
+}
+
+# the public subnet's default route is out through the IGW
 resource "aws_route_table" "public_eks" {
+  count  = var.subnet_count
   vpc_id = aws_vpc.eks.id
 
   route {
@@ -78,50 +120,109 @@ resource "aws_route_table" "public_eks" {
   }
 
   tags = {
-    Name = "${var.cluster_name}-eks"
+    Name = "${var.cluster_name}-public_eks-${count.index}"
   }
 }
 
+# apply the public subnet route table to the public subnet
 resource "aws_route_table_association" "public_eks" {
-  count = var.service_subnet_count
+  count = var.subnet_count
 
-  subnet_id      = aws_subnet.public_eks.*.id[count.index]
-  route_table_id = aws_route_table.public_eks.id
+  subnet_id      = aws_subnet.public_eks[count.index].id
+  route_table_id = aws_route_table.public_eks[count.index].id
 }
 
 resource "aws_eip" "nat_gateway" {
-  count = var.service_subnet_count
+  count = var.subnet_count
   vpc   = true
 }
 
 resource "aws_nat_gateway" "nat" {
-  count = var.service_subnet_count
+  count      = var.subnet_count
+  depends_on = [aws_internet_gateway.eks]
 
-  allocation_id = aws_eip.nat_gateway.*.id[count.index]
-  subnet_id     = aws_subnet.public_eks.*.id[count.index]
+  allocation_id = aws_eip.nat_gateway[count.index].id
+  subnet_id     = aws_subnet.nat[count.index].id
 
   tags = {
     Name = "${var.cluster_name} NAT ${count.index}"
   }
 }
 
+resource "aws_route_table" "nat" {
+  count = var.subnet_count
+
+  vpc_id = aws_vpc.eks.id
+  route {
+    cidr_block      = "0.0.0.0/0"
+    vpc_endpoint_id = data.aws_vpc_endpoint.networkfw[count.index].id
+  }
+
+  tags = {
+    Name = "${var.cluster_name} NAT to igw ${count.index}"
+  }
+}
+
+resource "aws_route_table_association" "nat" {
+  count = var.subnet_count
+
+  subnet_id      = aws_subnet.nat[count.index].id
+  route_table_id = aws_route_table.nat[count.index].id
+}
+
 resource "aws_route_table" "eks" {
-  count = var.eks_subnet_count
+  count = var.subnet_count
 
   vpc_id = aws_vpc.eks.id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat.*.id[count.index]
+    nat_gateway_id = aws_nat_gateway.nat[count.index].id
   }
 
   tags = {
-    Name = "${var.cluster_name} route to NAT ${count.index}"
+    Name = "${var.cluster_name} eks route to NAT ${count.index}"
   }
 }
 
 resource "aws_route_table_association" "eks" {
-  count = var.eks_subnet_count
+  count = var.subnet_count
 
-  subnet_id      = aws_subnet.eks.*.id[count.index]
-  route_table_id = aws_route_table.eks.*.id[count.index]
+  subnet_id      = aws_subnet.eks[count.index].id
+  route_table_id = aws_route_table.eks[count.index].id
+}
+
+data "aws_vpc_endpoint_service" "sts" {
+  service      = "sts"
+  service_type = "Interface"
+}
+
+resource "aws_vpc_endpoint" "sts" {
+  vpc_id              = aws_vpc.eks.id
+  service_name        = data.aws_vpc_endpoint_service.sts.service_name
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  subnet_ids          = aws_subnet.service.*.id
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.cluster_name} sts"
+  }
+}
+
+resource "aws_security_group" "vpc_endpoints" {
+  name        = "vpc_endpoints"
+  description = "Allow eks to contact vpc endpoints"
+  vpc_id      = aws_vpc.eks.id
+
+  ingress {
+    description     = "allow eks to contact vpc endpoints"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.eks-cluster.id]
+  }
+
+  tags = {
+    Name = "${var.cluster_name} vpc_endpoints"
+  }
 }

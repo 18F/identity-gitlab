@@ -17,14 +17,34 @@ variable "vpc_cidr" {
   description = "cidr block for VPC"
 }
 
-variable "eks_subnet_count" {
+variable "subnet_count" {
   default     = 2
-  description = "number of subnets used for EKS"
+  description = "number of subnets we use for each layer in this cluster"
 }
 
-variable "service_subnet_count" {
-  default     = 2
-  description = "number of subnets used for RDS and other services"
+variable "service_cidr" {
+  default     = "10.0.0.0/23"
+  description = "cidr block for services"
+}
+
+variable "public_cidr" {
+  default     = "10.0.2.0/23"
+  description = "cidr block for internet-facing services"
+}
+
+variable "fw_cidr" {
+  default     = "10.0.4.0/23"
+  description = "cidr block for firewalls"
+}
+
+variable "nat_cidr" {
+  default     = "10.0.6.0/23"
+  description = "cidr block for NAT"
+}
+
+variable "eks_cidr" {
+  default     = "10.0.8.0/21"
+  description = "private cidr block for EKS"
 }
 
 variable "nodetype" {
@@ -78,4 +98,10 @@ variable "accountids" {
   type        = list(string)
   description = "list of AWS account ids that we should allow to find the gitlab privatelink service"
   # export TF_VAR_accountids='["1234", "2345", "5678"]'
+}
+
+variable "bootstrap" {
+  description = "set this if you are bootstrapping this cluster for the first time.  There are things that need to get created later once the cluster is up that dependencies don't work on."
+  type        = bool
+  default     = false
 }

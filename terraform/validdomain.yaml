@@ -1,0 +1,23 @@
+# This is the list of domains which we are allowed to access from the gitlab environment
+domainAllowList:
+- .amazonaws.com
+- github.com
+- api.github.com
+- k8s.gcr.io
+- quay.io
+- public.ecr.aws
+- ghcr.io
+- registry-1.docker.io
+- .cloudfront.net
+- storage.googleapis.com
+- pkg-containers.githubusercontent.com
+- .teleport.cluster.local
+- auth.docker.io
+- kubernetes.github.io
+- charts.gitlab.io
+- aws.github.io
+- registry.gitlab.com
+- production.cloudflare.docker.com
+- github-releases.githubusercontent.com
+- gitlab.com
+- .api.letsencrypt.org

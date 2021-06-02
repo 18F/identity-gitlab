@@ -10,6 +10,8 @@
 #
 
 resource "kubernetes_namespace" "teleport" {
+  depends_on = [aws_eks_node_group.eks]
+
   metadata {
     name = "teleport"
     labels = {

@@ -23,8 +23,10 @@ mechanisms.  Examples of this can be found in `terraform/gitlab.tf` and
 
 ## Setup
 
-The setup will only need to be run once per AWS account.  It sets up the s3 bucket
-and dynamodb stuff for remote state and locking and then goes on to do the deploy.
+The setup make sure that the s3 bucket
+and dynamodb stuff for remote state and locking are set up, then does
+the base deployment of the cluster and it's services.  After that is done,
+proceed to the Deploy step and execute that to complete the final resources.
 
 Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 `gitlab-dev` is the name of your cluster.

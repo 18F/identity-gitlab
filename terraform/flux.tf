@@ -4,6 +4,7 @@
 
 # Kubernetes
 resource "kubernetes_namespace" "flux_system" {
+  depends_on = [aws_eks_node_group.eks]
   metadata {
     name = "flux-system"
   }
