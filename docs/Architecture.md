@@ -36,3 +36,23 @@ also not publicly accessible that hosts various AWS services that the cluster
 needs to operate, like RDS databases or Elasticache or AWS VPC endpoints.
 
 ![System Diagram](SystemDiagram.png)
+
+## Components
+
+### Gitlab
+
+### Teleport
+
+### aws-load-balancer-controller
+
+### aws-node-termination-handler
+
+### cluster-autoscaler
+
+### dashboard
+
+### FluxCD
+
+### metrics-server
+
+### Logging (fluent-bit)
