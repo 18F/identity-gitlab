@@ -1,5 +1,6 @@
 
 resource "kubernetes_namespace" "gitlab" {
+  depends_on = [aws_eks_node_group.eks]
   metadata {
     name = "gitlab"
   }
@@ -14,6 +15,7 @@ data "kubernetes_service" "gitlab-nginx-ingress-controller" {
 }
 
 resource "aws_route53_record" "gitlab" {
+  count   = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "gitlab-${var.cluster_name}"
   type    = "CNAME"
@@ -296,7 +298,8 @@ resource "aws_acm_certificate_validation" "gitlab" {
 
 # until https://github.com/hashicorp/terraform-provider-aws/issues/12265 gets solved:
 data "aws_lb" "gitlab" {
-  name = regex("^(?P<name>.+)-.+\\.elb\\..+\\.amazonaws\\.com", data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname)["name"]
+  count = var.bootstrap ? 0 : 1
+  name  = regex("^(?P<name>.+)-.+\\.elb\\..+\\.amazonaws\\.com", data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname)["name"]
 }
 
 locals {
@@ -308,9 +311,10 @@ locals {
 
 # VPC endpoint service so that we can set up VPC endpoints that go to this
 resource "aws_vpc_endpoint_service" "gitlab" {
+  count                      = var.bootstrap ? 0 : 1
   acceptance_required        = false
   allowed_principals         = local.principals
-  network_load_balancer_arns = [data.aws_lb.gitlab.arn]
+  network_load_balancer_arns = [data.aws_lb.gitlab.0.arn]
 
   tags = {
     Name = "gitlab-${var.cluster_name}.${var.domain}"

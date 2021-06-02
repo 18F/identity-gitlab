@@ -10,11 +10,6 @@ output "teleport_url" {
 }
 
 output "gitlab-privatelink-service_name" {
-  value       = aws_vpc_endpoint_service.gitlab.service_name
+  value       = var.bootstrap ? "not defined: run terraform again without bootstrap set" : aws_vpc_endpoint_service.gitlab.0.service_name
   description = "The service_name used by other VPCs to set up the gitlab privatelink"
-}
-
-output "gitlab-privatelink-service_type" {
-  value       = aws_vpc_endpoint_service.gitlab.service_type
-  description = "The service_type used by other VPCs to set up the gitlab privatelink"
 }

@@ -6,6 +6,7 @@
 #
 
 resource "kubernetes_namespace" "amazon-cloudwatch" {
+  depends_on = [aws_eks_node_group.eks]
   metadata {
     name = "amazon-cloudwatch"
   }

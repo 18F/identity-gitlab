@@ -99,3 +99,9 @@ variable "accountids" {
   description = "list of AWS account ids that we should allow to find the gitlab privatelink service"
   # export TF_VAR_accountids='["1234", "2345", "5678"]'
 }
+
+variable "bootstrap" {
+  description = "set this if you are bootstrapping this cluster for the first time.  There are things that need to get created later once the cluster is up that dependencies don't work on."
+  type        = bool
+  default     = false
+}

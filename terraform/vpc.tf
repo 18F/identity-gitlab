@@ -190,3 +190,39 @@ resource "aws_route_table_association" "eks" {
   subnet_id      = aws_subnet.eks[count.index].id
   route_table_id = aws_route_table.eks[count.index].id
 }
+
+data "aws_vpc_endpoint_service" "sts" {
+  service      = "sts"
+  service_type = "Interface"
+}
+
+resource "aws_vpc_endpoint" "sts" {
+  vpc_id              = aws_vpc.eks.id
+  service_name        = data.aws_vpc_endpoint_service.sts.service_name
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  subnet_ids          = aws_subnet.service.*.id
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.cluster_name} sts"
+  }
+}
+
+resource "aws_security_group" "vpc_endpoints" {
+  name        = "vpc_endpoints"
+  description = "Allow eks to contact vpc endpoints"
+  vpc_id      = aws_vpc.eks.id
+
+  ingress {
+    description     = "allow eks to contact vpc endpoints"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.eks-cluster.id]
+  }
+
+  tags = {
+    Name = "${var.cluster_name} vpc_endpoints"
+  }
+}

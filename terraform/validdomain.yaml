@@ -20,3 +20,4 @@ domainAllowList:
 - production.cloudflare.docker.com
 - github-releases.githubusercontent.com
 - gitlab.com
+- .api.letsencrypt.org

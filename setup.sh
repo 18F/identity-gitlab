@@ -76,5 +76,5 @@ terraform apply
 popd
 
 # Here we go!  This is where the magic happens.  :-)
-"$RUN_BASE/$SCRIPT_BASE/deploy.sh" "$1"
+TF_VAR_bootstrap=true "$RUN_BASE/$SCRIPT_BASE/deploy.sh" "$1"
 
