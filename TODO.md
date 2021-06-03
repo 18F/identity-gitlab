@@ -20,6 +20,7 @@ This is a list of items that people can make issues out of and start work on:
 * PV backups for teleport and gitlab.  Snapshotting of the EBS volumes would
   probably work, but not sure how to turn that on.
 * Infrastructure tests for gitlab cluster?  So cool.
+* Make the kubernetes dashboard be exposed as a Teleport Application for admin users.
 * Get Falco going:  https://falco.org/  Make some alerts?  Make sure you don't
   bust the managed node barrier.  We want to inherit as much as possible of
   AWS' FedRAMP controls.
