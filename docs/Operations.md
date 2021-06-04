@@ -244,6 +244,25 @@ If you want to deploy kubernetes things, you should:
 
 ### PrivateLink services and Endpoints
 
+Services can be exposed to other VPCs by doing the following:
+* Making sure that your service is using an NLB.  You should be able to do this by
+  making the service be a LoadBalancer, and some helm charts allow you to add
+  annotations or other ingress config that tells it to be an NLB and have
+  ACM certs on it, etc.  If you cannot make it be an NLB, you cannot use PrivateLink,
+  and you will have to expose the service another way, like allowing it out
+  to the world and limiting it to IP addresses or something ugly like that.
+* Setting up a `aws_vpc_endpoint_service` for the service.  You can see an example
+  for that in `identity-gitlab/terraform/gitlab.tf`.  Note that there are also
+  security groups, ACM certs, and other stuff there that you probably will want
+  to adapt as well.  Of note, there is a list of account IDs and roles that you have to
+  configure that will allow those entities to discover the service.
+* Run `./deploy.sh` and get the name of the service from the output.
+* Setting up PrivateLink in the other VPCs.  A good example of that can
+  be found here:  https://github.com/18F/identity-devops/pull/3512, but it's
+  basically that you need to create an `aws_vpc_endpoint` with the name
+  that you got in the previous step.
+* Dance!
+
 ### Teleport groups/RBAC
 
 
