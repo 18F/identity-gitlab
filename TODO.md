@@ -31,3 +31,6 @@ This is a list of items that people can make issues out of and start work on:
 * Aqua or other runtime security product?
 * Look at NewRelic support for watching k8s clusters?
 * IPv6:  Let's do it!
+* Run `aws eks update-nodegroup-version` weekly with a job or something?
+* Write a script to run `aws eks describe-addon-versions` weekly and email
+  us if there are updates to kubernetes.

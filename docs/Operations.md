@@ -168,22 +168,79 @@ the `identity-gitlab/clusters/gitlab-cluster/flux-system/gotk-sync.yaml` file
 to point to your branch instead of main and then run `./deploy.sh`.  It will then track
 your branch, so you can do development work on your branch on your cluster.
 
-*NOTE:* Be sure to change your branch to point back at main when you PR it in.
+**NOTE:** Be sure to change your branch to point back at main when you PR it in.
 Otherwise, the production cluster will switch over to deploying from your branch!
 
 ### EKS Managed Node Groups
 
+Pretty regularly, Amazon will update the AMIs in their managed node groups, and
+you probably will want to roll that out.  I haven't found a way to do this in terraform
+automatically, but in the console, you just need to click a button, and it will automatically
+do this.
+
+You can also run the `aws eks update-nodegroup-version` command, and it should
+do the same thing as the console button.  We should consider running this
+weekly.
 
 ### EKS
 
+New versions of kubernetes come out.  When you want to upgrade, you can do it
+through updating the version in `identity-gitlab/terraform/eks-cluster.tf`
+and running `./deploy.sh` again.
+
+Someday, we should look at `aws eks describe-addon-versions`, which can be used
+to find available versions, and have a script that alerts us when there are
+new versions that we should consider updating to.
 
 ## Creating New Things
 
 ### New AWS resources
 
-passing arns and endpoints and so on to fluxcd/helm/k8s
+Creating new AWS resources is just an exercise in terraform-ing.  But you will
+probably want to have these resources used by kubernetes services.  There are
+a couple of ways to pass this information in:
+
+#### Create a ConfigMap or Secret that the application uses directly for it's config.
+
+Basically, you learn how your app is configured, and you set up a ConfigMap or
+Secret using Terraform that contains the data that the app needs.  When the
+app launches, it uses the ConfigMap/Secret that you configured.
+
+An example of this is in `identity-gitlab/terraform/logging.tf`, where a
+ConfigMap has been set up that is used by `identity-gitlab/clusters/gitlab-cluster/logging/logging.yaml`
+to configure itself.
+
+#### Create a ConfigMap or Secret and use valuesFrom to pull values into your helm chart.
+
+To use this, create a ConfigMap or Secret that contains the data you want to use in a helm release.
+Then, you can use [valuesFrom]](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmrelease-guide/values/#values-from-sources)
+to pull data out of your ConfigMap/Secret and use it as a value when helm is deploying
+the release.
+
+An example can be found in the `terraform-gitlab-info` ConfigMap in
+`identity-gitlab/terraform/gitlab.tf`, which contains the data that needs to
+be passed to helm.  The `identity-gitlab/clusters/gitlab-cluster/gitlab/gitlab.yaml`
+file then has a `valuesFrom` section which maps the ConfigMap data into
+helm chart values.
 
 ### New Kubernetes resources
+
+If you want to deploy kubernetes things, you should:
+* Create a subdirectory under `identity-gitlab/clusters/gitlab-cluster/` that
+  lets people know what the code under there is doing.
+* Create/copy the yaml in that you need to get the thing going.  This can be a
+  `HelmRelease` that FluxCD will deploy, or it can be regular kubernetes yaml.
+* Create a `kustomization.yaml` file that includes all of the yaml that you
+  want deployed to the cluster.  If you want to use Kustomize's super clever
+  generators or variable substitution or other features, you can do that.
+* Make sure that `identity-gitlab/clusters/gitlab-cluster/kustomization.yaml`
+  has your subdir in it.
+* Run `kustomize build identity-gitlab/clusters/gitlab-cluster/` and make
+  sure it renders without errors.
+* Test it out by pushing these changes to a branch that is deployed by a
+  test cluster and see how it rolls out.
+* Iterate until it's awesome!
+* PR the change into main.
 
 ### PrivateLink services and Endpoints
 
