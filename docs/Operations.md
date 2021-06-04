@@ -263,20 +263,95 @@ Services can be exposed to other VPCs by doing the following:
   that you got in the previous step.
 * Dance!
 
-### Teleport groups/RBAC
-
-
 ## Misc Tasks
 
 ### Deleting a cluster
 
+This should be as simple as doing a `./destroy.sh <cluster>` and then waiting, but
+it's not quite that easy, sadly.
+
+You will need to remove the kubernetes finalizer
+from a couple of namespaces.  Basically, when you run `destroy.sh`, when it gets
+down to trying to delete a few namespaces again and again, like `gitlab`, `fluxcd-system`, and
+maybe more, follow the procedure you can find here: https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
+
+There may also be some networking cruft that you will have to delete.  While I'm doing
+development, I've found that a few times, I needed to delete some extra NAT gateways and
+subnets and so on so that the VPC could go away.  You can go to the console to do this,
+and try to delete the thing, and it will usually tell you that there are network
+interfaces or whatever still there and give you a link to them.  You can go delete them
+by hand in the console there.
+
+I'm not entirely sure what that was.  I haven't seen it recently.  But be aware that it
+might happen.
+
 ### Fluxcd Helm Magic
 
-force sync
-check status of helmrelease, helm
-fluxcd logs
+You can watch how the upgrade is going with a command like
+`watch "kubectl describe helmrelease gitlab -n gitlab | tail -50"`
+and/or
+`watch kubectl get all -n gitlab`
+
+To tell flux to go grab the latest/greatest right now because you are an 
+impatient person:
+```
+flux reconcile source git flux-system
+```
+
+To get a quick status of flux:
+```
+flux get sources all
+```
+
+To get logs from flux, which can sometimes give you some info on why things aren't deploying:
+```
+flux logs  -f
+```
+
+Sometimes if you want to just delete a helm release and start over, you need to
+delete the helm release AND the helmrelease, and then fluxcd will see that the
+helmrelease is gone and push it back out there, starting the deploy over again.
+Something like:
+```
+helm delete gitlab -n gitlab
+watch kubectl get all -n gitlab
+# Wait until all the stuff is gone
+kubectl delete helmrelease gitlab -n gitlab
+flux reconcile source git flux-system
+```
 
 ### How to run a pod in the cluster
 
+Sometimes you want to run a shell in the cluster so you can test stuff out.
+```
+kubectl run -it alpine --image=alpine -n namespace
+	apk add <packages>
+```
+
 ### kubectl common commands
 
+https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+Here is my recent shell history, uniqued:
+```
+kubectl delete -n teleport pod/tshnode-567dc7547-lhr9q
+kubectl delete helmrelease gitlab -n gitlab
+kubectl delete pod gitlab-shared-secrets-1-vnd-w8vww -n gitlab
+kubectl describe -n kube-system pod/aws-load-balancer-controller-78d67d9fcd-l7kp5
+kubectl describe -n teleport helmrelease/teleport-kube-agent
+kubectl describe helmchart gitlab -n flux-system
+kubectl describe helmrelease -n kubernetes-dashboard
+kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < terraform-k8s/teleport-k8s-admin-role.yaml
+kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add tspencer --roles=editor,access,admin,k8s-admin --logins=root
+kubectl get all
+kubectl get all -n gitlab
+kubectl get helmchart  -n flux-system
+kubectl get helmrelease -n gitlab
+kubectl get helmrelease -n kubernetes-dashboard
+kubectl get pod -n gitlab
+kubectl logs -fn gitlab deployment.apps/gitlab-gitlab-runner
+kubectl logs -n teleport deployment/teleport-cluster
+kubectl rollout restart deployment.apps/gitlab-sidekiq-all-in-1-v1 -n gitlab
+kubectl top
+watch "kubectl describe helmrelease gitlab -n gitlab | tail -50"
+```
