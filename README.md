@@ -21,6 +21,12 @@ or [secretKeyRef](https://docs.fluxcd.io/projects/helm-operator/en/stable/helmre
 mechanisms.  Examples of this can be found in `terraform/gitlab.tf` and
 `clusters/gitlab-cluster/gitlab/gitlab.yaml`.
 
+## More Documentation
+
+For more documentation, take a look at the `docs` directory here.
+There is a lot of info there on the architecture, components, operational
+tasks, etc.
+
 ## Setup
 
 The setup make sure that the s3 bucket
