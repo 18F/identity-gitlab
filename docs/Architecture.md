@@ -35,7 +35,7 @@ to the private node group subnets.  There is also a "services" subnet that is
 also not publicly accessible that hosts various AWS services that the cluster
 needs to operate, like RDS databases or Elasticache or AWS VPC endpoints.
 
-![System Diagram](SystemDiagram.png)
+![System Diagram](img/SystemDiagram.png)
 
 ## Components
 

@@ -54,7 +54,7 @@ Services in the cluster can be accessed only in 3 ways:
 * By using a service that is exposed to other authorized VPCs over AWS PrivateLink, such as
   [git over ssh](https://docs.gitlab.com/ee/ssh/).
 
-![Access Diagram](Access.png)
+![Access Diagram](img/Access.png)
 
 Teleport is the main way in for everybody.  Only a few admins will have IAM access.  Teleport
 has documented many of it's FedRAMP controls that it fulfills for us here:
