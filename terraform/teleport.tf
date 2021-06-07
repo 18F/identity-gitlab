@@ -142,7 +142,7 @@ resource "helm_release" "teleport-kube-agent" {
   namespace  = "teleport"
   # XXX temporary
   wait       = false
-  depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
+  depends_on = [kubernetes_secret.teleport-kube-agent-join-token, helm_release.teleport-cluster]
 
   set {
     name  = "namespace"
