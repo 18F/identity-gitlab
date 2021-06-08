@@ -98,9 +98,9 @@ spec:
         display_name: "Login.gov GitLab"
       smtp:
         enabled: true
-        tls: true
+        enable_starttls_auto: true
         port: 587
-        authentication: plain
+        authentication: login
         user_name:
           secret: ses-smtp
           key: username
@@ -164,3 +164,8 @@ spec:
       name: terraform-gitlab-info
       valuesKey: smtp-endpoint
       targetPath: global.smtp.address
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: email-domain
+      targetPath: global.smtp.domain
+      

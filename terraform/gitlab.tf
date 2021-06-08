@@ -44,6 +44,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "cert-arn"                 = aws_acm_certificate.gitlab.arn
     "email-from"               = "gitlab@${var.cluster_name}.${var.domain}"
     "smtp-endpoint"            = "email-smtp.${var.region}.amazonaws.com"
+    "email-domain"             = "${var.cluster_name}.${var.domain}"
   }
 }
 
