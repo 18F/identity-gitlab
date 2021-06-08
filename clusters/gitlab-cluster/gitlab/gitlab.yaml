@@ -99,6 +99,7 @@ spec:
       smtp:
         enabled: true
         tls: true
+        port: 587
         authentication: plain
         user_name:
           secret: ses-smtp
