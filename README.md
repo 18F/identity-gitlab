@@ -74,7 +74,13 @@ which will help us with excellent [FedRAMP controls](https://goteleport.com/tele
 To get access, you will need to configure teleport.
 - Add yourself as a local admin: `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <yourusername> --roles=editor,access,admin,k8s-admin --logins=root`
 - Go to the URL they give you and set up your 2fa
-- You can use kubernetes if you use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
+- Use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
+- Hack:  until https://github.com/gravitational/teleport/issues/7105 is resolved, you will need to do the following steps:
+  - Run `tctl get roles > /tmp/roles.yaml`
+  - Edit `/tmp/roles.yaml` and remove all lines with `internal.kubernetes_groups` and `internal.kubernetes_users` in them.
+  - Run `tctl create -f /tmp/roles.yaml`
+  - Run `tsh logout ; tsh login` and authenticate again.
+- You should be able to use kubernetes now like `kubectl get all -n teleport`
 - You should then be able to go to the applications section and pull up gitlab.
 - Longer term, we hope to configure more of this through code.
 
