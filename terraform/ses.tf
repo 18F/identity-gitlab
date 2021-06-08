@@ -22,8 +22,24 @@ data "aws_iam_policy_document" "ses_email_user_policy" {
   }
 }
 
+resource "aws_iam_access_key" "gitlab-ses" {
+  user = aws_iam_user.gitlab-ses.name
+}
+
 resource "aws_ses_domain_identity" "gitlab" {
   domain = "${var.cluster_name}.${var.domain}"
+}
+
+resource "kubernetes_secret" "ses-smtp" {
+  metadata {
+    name = "ses-smtp"
+    namespace = "gitlab"
+  }
+  data = {
+    username = aws_iam_user.gitlab-ses.name
+    password = aws_iam_access_key.gitlab-ses.ses_smtp_password_v4
+  }
+  type = "kubernetes.io/basic-auth"
 }
 
 resource "aws_route53_record" "gitlab_amazonses_verification_record" {

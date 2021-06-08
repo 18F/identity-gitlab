@@ -94,6 +94,18 @@ spec:
         password:
           secret: rds-pw-gitlab
           key: redispw
+      email:
+        display_name: "Login.gov GitLab"
+      smtp:
+        enabled: true
+        tls: true
+        authentication: plain
+        user_name:
+          secret: ses-smtp
+          key: username
+        password:
+          secret: ses-smtp
+          key: password
     postgresql:
       install: false
     redis:
@@ -143,3 +155,11 @@ spec:
       name: terraform-gitlab-info
       valuesKey: cert-arn
       targetPath: nginx-ingress.controller.service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: email-from
+      targetPath: global.email.from
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: smtp-endpoint
+      targetPath: global.smtp.address
