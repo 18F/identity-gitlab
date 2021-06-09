@@ -169,9 +169,13 @@ resource "helm_release" "teleport-cluster" {
   #   name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-proxy-protocol"
   #   value = "*"
   # }
+  # set {
+  #   name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-negotiation-policy"
+  #   value = "ELBSecurityPolicy-TLS-1-2-2017-01"
+  # }
   set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-backend-protocol"
-    value = "tcp"
+    value = "https"
   }
   set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-ports"
