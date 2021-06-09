@@ -101,9 +101,6 @@ spec:
         starttls_auto: true
         port: 587
         authentication: login
-        user_name:
-          secret: ses-smtp
-          key: username
         password:
           secret: ses-smtp
           key: password
@@ -168,4 +165,7 @@ spec:
       name: terraform-gitlab-info
       valuesKey: email-domain
       targetPath: global.smtp.domain
-      
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: smtp-username
+      targetPath: global.smtp.user_name

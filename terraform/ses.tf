@@ -36,7 +36,6 @@ resource "kubernetes_secret" "ses-smtp" {
     namespace = "gitlab"
   }
   data = {
-    username = aws_iam_user.gitlab-ses.name
     password = aws_iam_access_key.gitlab-ses.ses_smtp_password_v4
   }
   type = "kubernetes.io/basic-auth"
