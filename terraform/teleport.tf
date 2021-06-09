@@ -75,6 +75,38 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
   }
 }
 
+# cert for teleport, attached to the network lb
+resource "aws_acm_certificate" "teleport" {
+  domain_name       = "teleport-${var.cluster_name}.${var.domain}"
+  validation_method = "DNS"
+
+  tags = {
+    Name = "teleport-${var.cluster_name}.${var.domain}"
+  }
+}
+
+resource "aws_route53_record" "teleport-validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.teleport.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.gitlab.zone_id
+}
+
+resource "aws_acm_certificate_validation" "teleport" {
+  certificate_arn         = aws_acm_certificate.teleport.arn
+  validation_record_fqdns = [for record in aws_route53_record.teleport-validation : record.fqdn]
+}
+
 # Ideally, this would be done through flux, but we need it to be live
 # so we can reference the service to get the elb to put the CNAMEs on.
 resource "helm_release" "teleport-cluster" {
@@ -85,9 +117,9 @@ resource "helm_release" "teleport-cluster" {
   # repository = "https://charts.releases.teleport.dev"
   repository = "https://timothy-spencer.github.io/helm-charts"
   chart      = "teleport-cluster"
-  version    = "6.0.0"
+  version    = "6"
   namespace  = "teleport"
-  depends_on = [kubernetes_secret.teleport-kube-agent-join-token]
+  depends_on = [kubernetes_secret.teleport-kube-agent-join-token, aws_iam_role.teleport]
 
   set {
     name  = "namespace"
@@ -95,9 +127,66 @@ resource "helm_release" "teleport-cluster" {
   }
 
   set {
-    name  = "acme"
-    value = "true"
+    name  = "chartMode"
+    value = "aws"
   }
+
+  set {
+    name  = "aws.backendTable"
+    value = "${var.cluster_name}-teleport-state"
+  }
+
+  set {
+    name  = "aws.auditLogTable"
+    value = "${var.cluster_name}-teleport-events"
+  }
+
+  set {
+    name  = "aws.sessionRecordingBucket"
+    value = "${var.cluster_name}-teleport-sessions"
+  }
+
+  set {
+    name  = "aws.region"
+    value = var.region
+  }
+
+  set {
+    name  = "acme"
+    value = "false"
+  }
+  set {
+    name  = "acmeEmail"
+    value = var.certmanager-issuer
+  }
+
+
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-additional-resource-tags"
+    value = "Name=${var.cluster_name}-teleport"
+  }
+  # set {
+  #   name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-proxy-protocol"
+  #   value = "*"
+  # }
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-backend-protocol"
+    value = "tcp"
+  }
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-ports"
+    value = "443"
+    type  = "string"
+  }
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
+    value = "nlb"
+  }
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-cert"
+    value = aws_acm_certificate.teleport.arn
+  }
+
 
   # # XXX temporary
   # set {
@@ -110,11 +199,6 @@ resource "helm_release" "teleport-cluster" {
   # }
 
   set {
-    name  = "acmeEmail"
-    value = var.certmanager-issuer
-  }
-
-  set {
     name  = "clusterName"
     value = "teleport-${var.cluster_name}.${var.domain}"
   }
@@ -125,7 +209,7 @@ resource "helm_release" "teleport-cluster" {
   }
 
   set {
-    name  = "serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
+    name  = "annotations.serviceAccount.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.teleport.arn
   }
 }
@@ -138,7 +222,7 @@ resource "helm_release" "teleport-kube-agent" {
   # repository = "https://charts.releases.teleport.dev"
   repository = "https://timothy-spencer.github.io/helm-charts"
   chart      = "teleport-kube-agent"
-  version    = "0.0.4"
+  version    = "6"
   namespace  = "teleport"
   # XXX temporary
   wait       = false
@@ -176,7 +260,7 @@ resource "helm_release" "teleport-kube-agent" {
   }
 
   set {
-    name  = "serviceAccountAnnotations.eks\\.amazonaws\\.com/role-arn"
+    name  = "annotations.serviceAccount.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.teleport.arn
   }
 }
@@ -214,6 +298,7 @@ resource "aws_iam_role_policy" "teleport" {
   role = aws_iam_role.teleport.id
 
   # This came from https://goteleport.com/docs/aws-oss-guide/#create-iam-policy-granting-list-clusters-and-describe-cluster-permissions-optional
+  # and https://goteleport.com/docs/aws-oss-guide/#iam
   policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -226,6 +311,74 @@ resource "aws_iam_role_policy" "teleport" {
                 "eks:ListClusters"
             ],
             "Resource": "*"
+        },
+        {
+            "Sid": "ClusterStateStorage",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:BatchWriteItem",
+                "dynamodb:UpdateTimeToLive",
+                "dynamodb:PutItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:DescribeStream",
+                "dynamodb:UpdateItem",
+                "dynamodb:DescribeTimeToLive",
+                "dynamodb:CreateTable",
+                "dynamodb:DescribeTable",
+                "dynamodb:GetShardIterator",
+                "dynamodb:GetItem",
+                "dynamodb:UpdateTable",
+                "dynamodb:GetRecords"
+            ],
+            "Resource": [
+                "arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.cluster_name}-teleport-state",
+                "arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.cluster_name}-teleport-state/stream/*"
+            ]
+        },
+        {
+            "Sid": "ClusterEventsStorage",
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:CreateTable",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:UpdateTimeToLive",
+                "dynamodb:PutItem",
+                "dynamodb:DescribeTable",
+                "dynamodb:DeleteItem",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:Query",
+                "dynamodb:UpdateItem",
+                "dynamodb:DescribeTimeToLive",
+                "dynamodb:UpdateTable"
+            ],
+            "Resource": [
+                "arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.cluster_name}-teleport-events",
+                "arn:aws:dynamodb:${var.region}:${data.aws_caller_identity.current.account_id}:table/${var.cluster_name}-teleport-events/index/*"
+            ]
+        },
+        {
+            "Sid": "ClusterSessionsStorage",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutEncryptionConfiguration",
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:GetEncryptionConfiguration",
+                "s3:GetObjectRetention",
+                "s3:ListBucketVersions",
+                "s3:CreateBucket",
+                "s3:ListBucket",
+                "s3:GetBucketVersioning",
+                "s3:PutBucketVersioning",
+                "s3:GetObjectVersion"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${var.cluster_name}-teleport-sessions/*",
+                "arn:aws:s3:::${var.cluster_name}-teleport-sessions"
+            ]
         }
     ]
 }
