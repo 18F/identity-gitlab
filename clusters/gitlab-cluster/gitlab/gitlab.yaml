@@ -99,6 +99,7 @@ spec:
       smtp:
         enabled: true
         starttls_auto: true
+        starttls: true
         port: 587
         authentication: login
         password:
