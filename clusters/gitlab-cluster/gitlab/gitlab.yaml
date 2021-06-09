@@ -98,7 +98,7 @@ spec:
         display_name: "Login.gov GitLab"
       smtp:
         enabled: true
-        enable_starttls_auto: true
+        starttls_auto: true
         port: 587
         authentication: login
         user_name:
