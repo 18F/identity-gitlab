@@ -19,7 +19,7 @@ resources:
 EOF
 
 # The grep -v is to get rid of the cn and us-gov stuff.  We can only run one.
-find yaml -name \*.yaml -type f | grep -Ev 'cni-metrics-helper-|aws-k8s-cni-' | while read line ; do
+find yaml -name \*.yaml -type f | grep -Ev 'cni-metrics-helper-|aws-k8s-cni-' | while read -r line ; do
 	echo "- $line" >> kustomization.yaml
 done
 
