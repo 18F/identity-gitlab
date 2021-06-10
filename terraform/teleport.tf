@@ -175,7 +175,6 @@ resource "helm_release" "teleport-cluster" {
   # }
   set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-backend-protocol"
-    # value = "tcp"
     value = "ssl"
   }
   # set {
@@ -188,12 +187,12 @@ resource "helm_release" "teleport-cluster" {
     value = "external"
   }
   set {
-    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
-    value = "internet-facing"
-  }
-  set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-nlb-target-type"
     value = "instance"
+  }
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-scheme"
+    value = "internet-facing"
   }
   set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-cert"
