@@ -161,6 +161,9 @@ resource "helm_release" "teleport-cluster" {
   }
 
 
+  # set the loadbalancer up so that it uses SSL on the backend and the real
+  # aws-load-balancer-controller instead of the in-tree one, which is only receiving
+  # critical fixes now, for some reason.
   set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-additional-resource-tags"
     value = "Name=${var.cluster_name}-teleport"
