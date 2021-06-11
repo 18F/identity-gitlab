@@ -161,27 +161,19 @@ resource "helm_release" "teleport-cluster" {
   }
 
 
-  # set {
-  #   name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-additional-resource-tags"
-  #   value = "Name=${var.cluster_name}-teleport"
-  # }
-  # set {
-  #   name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-proxy-protocol"
-  #   value = "*"
-  # }
-  # set {
-  #   name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-negotiation-policy"
-  #   value = "ELBSecurityPolicy-TLS-1-2-2017-01"
-  # }
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-additional-resource-tags"
+    value = "Name=${var.cluster_name}-teleport"
+  }
   set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-backend-protocol"
     value = "ssl"
   }
-  # set {
-  #   name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-ports"
-  #   value = "443"
-  #   type  = "string"
-  # }
+  set {
+    name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-ssl-ports"
+    value = "443"
+    type  = "string"
+  }
   set {
     name  = "annotations.service.service\\.beta\\.kubernetes\\.io/aws-load-balancer-type"
     value = "external"
