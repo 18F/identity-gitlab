@@ -23,5 +23,5 @@ find yaml -name \*.yaml -type f | grep -Ev 'cni-metrics-helper-|aws-k8s-cni-' | 
 	echo "- $line" >> kustomization.yaml
 done
 
-#rm -rf "$SRC"
+rm -rf "$SRC"
 

@@ -152,6 +152,11 @@ resource "helm_release" "teleport-cluster" {
   }
 
   set {
+    name  = "aws.backups"
+    value = true
+  }
+
+  set {
     name  = "acme"
     value = "false"
   }
@@ -199,10 +204,6 @@ resource "helm_release" "teleport-cluster" {
   # set {
   #   name  = "logLevel"
   #   value = "DEBUG"
-  # }
-  # set {
-  #   name  = "acmeURI"
-  #   value = "https://acme-staging-v02.api.letsencrypt.org/directory"
   # }
 
   set {
@@ -337,6 +338,7 @@ resource "aws_iam_role_policy" "teleport" {
                 "dynamodb:GetShardIterator",
                 "dynamodb:GetItem",
                 "dynamodb:UpdateTable",
+                "dynamodb:UpdateContinuousBackups",
                 "dynamodb:GetRecords"
             ],
             "Resource": [
@@ -359,6 +361,7 @@ resource "aws_iam_role_policy" "teleport" {
                 "dynamodb:Query",
                 "dynamodb:UpdateItem",
                 "dynamodb:DescribeTimeToLive",
+                "dynamodb:UpdateContinuousBackups",
                 "dynamodb:UpdateTable"
             ],
             "Resource": [
