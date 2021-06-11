@@ -112,8 +112,8 @@ resource "aws_acm_certificate_validation" "teleport" {
 resource "helm_release" "teleport-cluster" {
   name = "teleport-cluster"
   # XXX remove the tspencer repo and add teleport back once these PRs get in:
-  #  https://github.com/gravitational/teleport/pull/6586
   #  https://github.com/gravitational/teleport/pull/6619
+  #  https://github.com/gravitational/teleport/pull/7287
   # repository = "https://charts.releases.teleport.dev"
   repository = "https://timothy-spencer.github.io/helm-charts"
   chart      = "teleport-cluster"
@@ -224,8 +224,8 @@ resource "helm_release" "teleport-cluster" {
 resource "helm_release" "teleport-kube-agent" {
   name = "teleport-kube-agent"
   # XXX remove the tspencer repo and add teleport back once these PRs get in:
-  #  https://github.com/gravitational/teleport/pull/6586
   #  https://github.com/gravitational/teleport/pull/6619
+  #  https://github.com/gravitational/teleport/pull/7287
   # repository = "https://charts.releases.teleport.dev"
   repository = "https://timothy-spencer.github.io/helm-charts"
   chart      = "teleport-kube-agent"
