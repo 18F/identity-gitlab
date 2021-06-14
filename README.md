@@ -1,5 +1,11 @@
 # GITLAB!
 
+## Prerequisites
+
+1. Install `kubectl` (`brew install kubectl`)
+
+## Configuration
+
 This will launch and configure a basic gitlab instance inside of EKS.
 
 Terraform configures the AWS resources required to get the cluster off
