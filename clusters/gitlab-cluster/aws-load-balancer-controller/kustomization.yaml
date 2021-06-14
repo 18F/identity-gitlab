@@ -1,6 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-- TargetGroupBinding-crds.yaml
+# You only need this line if you are upgrading, apparently!
+# - TargetGroupBinding-crds.yaml
 - aws-load-balancer-controller.yml
 

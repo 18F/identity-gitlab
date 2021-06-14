@@ -1,5 +1,11 @@
 # GITLAB!
 
+## Prerequisites
+
+1. Install `kubectl` (`brew install kubectl`)
+
+## Configuration
+
 This will launch and configure a basic gitlab instance inside of EKS.
 
 Terraform configures the AWS resources required to get the cluster off
@@ -154,9 +160,8 @@ to see how the rollout went.
 
 ### Dashboard
 
-If you want to see what is going on in the cluster, and you are a k8s-admin,
-you can do `kubectl port-forward service/dashboard-kubernetes-dashboard 4430:443 -n kubernetes-dashboard`
-and then go to http://localhost:4430/ to see almost everything.  It is running in a
+If you want to see what is going on in the cluster, go to the teleport
+apps and click on the dashboard to see almost everything.  It is running in a
 read-only mode, with reduced privs, so it can't see things like secrets and so on.
 
 
