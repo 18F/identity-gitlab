@@ -14,10 +14,9 @@ This is a list of items that people can make issues out of and start work on:
 	* Manual user creation:  Might be easy to do.  Certainly would be super
 	  reliable because there's no service to go down.
 * Do more FIPS investigation to see how FIPS-y we can make this thing.
-* PV backups for and gitlab.  Snapshotting of the EBS volumes would
+* PV backups for gitlab.  Snapshotting of the EBS volumes would
   probably work, but not sure how to turn that on.
 * Infrastructure tests for gitlab cluster?  So cool.
-* Make the kubernetes dashboard be exposed as a Teleport Application for admin users.
 * Get Falco going:  https://falco.org/  Make some alerts?  Make sure you don't
   bust the managed node barrier.  We want to inherit as much as possible of
   AWS' FedRAMP controls.
@@ -36,3 +35,5 @@ This is a list of items that people can make issues out of and start work on:
   used to create DNS entries and instead handle that in-cluster.  This should
   let us simplify the terraform code a bunch at the expense of enabling that
   dns manager to alter our route53 zone.
+* Investigate moving teleport into being managed by flux.  May require
+  the external-dns stuff above.
