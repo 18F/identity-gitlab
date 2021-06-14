@@ -78,3 +78,5 @@ popd
 # Here we go!  This is where the magic happens.  :-)
 TF_VAR_bootstrap=true "$RUN_BASE/$SCRIPT_BASE/deploy.sh" "$1"
 
+unset TF_VAR_bootstrap
+"$RUN_BASE/$SCRIPT_BASE/deploy.sh" "$1"
