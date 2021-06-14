@@ -48,6 +48,24 @@ resource "aws_route53_record" "teleport-wildcard" {
   records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
 }
 
+resource "aws_route53_record" "dashboard" {
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "dashboard-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
+}
+
+resource "aws_route53_record" "gitlab" {
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "gitlab-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  # records = [data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname]
+  records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
+}
+
+
 # This is actually created by the deploy script so that
 # it is available when we do tf, but not stored in the state.
 data "aws_secretsmanager_secret_version" "join-token" {
@@ -78,6 +96,7 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
 # cert for teleport, attached to the network lb
 resource "aws_acm_certificate" "teleport" {
   domain_name       = "teleport-${var.cluster_name}.${var.domain}"
+  subject_alternative_names = ["*.teleport-${var.cluster_name}.${var.domain}"]
   validation_method = "DNS"
 
   tags = {
@@ -265,6 +284,16 @@ resource "helm_release" "teleport-kube-agent" {
   set {
     name  = "apps[0].uri"
     value = "http://gitlab-webservice-default.gitlab:8181"
+  }
+
+  set {
+    name  = "apps[1].name"
+    value = "dashboard"
+  }
+
+  set {
+    name  = "apps[1].uri"
+    value = "http://dashboard-kubernetes-dashboard.kubernetes-dashboard:443"
   }
 
   set {
