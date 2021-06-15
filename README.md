@@ -37,8 +37,7 @@ tasks, etc.
 
 The setup make sure that the s3 bucket
 and dynamodb stuff for remote state and locking are set up, then does
-the base deployment of the cluster and it's services.  After that is done,
-proceed to the Deploy step and execute that to complete the final resources.
+the base deployment of the cluster and it's services.
 
 Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
 `gitlab-dev` is the name of your cluster.
@@ -61,10 +60,6 @@ you change it back to master before you make your PR.
 ## Delete
 
 `aws-vault exec sandbox-admin -- ./destroy.sh gitlab-dev`
-
-Also, some namespaces won't delete right off.  You will need to
-follow the procedure in here to make them actually go away:
-https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
 
 You may have to delete an ELB by hand too.  I think that EKS is deleted too
 fast sometimes for teleport or gitlab to tear it down.

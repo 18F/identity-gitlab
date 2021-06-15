@@ -33,6 +33,7 @@ data "kubernetes_service" "teleport" {
 }
 
 resource "aws_route53_record" "teleport" {
+  count = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "teleport-${var.cluster_name}"
   type    = "CNAME"
@@ -41,6 +42,7 @@ resource "aws_route53_record" "teleport" {
 }
 
 resource "aws_route53_record" "teleport-wildcard" {
+  count = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "*.teleport-${var.cluster_name}"
   type    = "CNAME"
@@ -49,6 +51,7 @@ resource "aws_route53_record" "teleport-wildcard" {
 }
 
 resource "aws_route53_record" "dashboard" {
+  count = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "dashboard-${var.cluster_name}"
   type    = "CNAME"
@@ -57,11 +60,11 @@ resource "aws_route53_record" "dashboard" {
 }
 
 resource "aws_route53_record" "gitlab" {
+  count = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "gitlab-${var.cluster_name}"
   type    = "CNAME"
   ttl     = "300"
-  # records = [data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname]
   records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
 }
 
@@ -138,7 +141,7 @@ resource "helm_release" "teleport-cluster" {
   chart      = "teleport-cluster"
   version    = "6"
   namespace  = "teleport"
-  depends_on = [kubernetes_secret.teleport-kube-agent-join-token, aws_iam_role.teleport]
+  depends_on = [kubernetes_secret.teleport-kube-agent-join-token, aws_iam_role.teleport, kubectl_manifest.fluxcd-sync]
 
   set {
     name  = "namespace"
