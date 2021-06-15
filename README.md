@@ -40,7 +40,7 @@ and dynamodb stuff for remote state and locking are set up, then does
 the base deployment of the cluster and it's services.  After that is done,
 proceed to the Deploy step and execute that to complete the final resources.
 
-Run it like: `aws-vault exec sandbox-admin -- ./setup.sh gitlab-dev` where
+Run it like: `aws-vault exec tooling-admin -- ./setup.sh gitlab-dev` where
 `gitlab-dev` is the name of your cluster.
 
 NOTE:  Right now, you must run this in the account that is hosting the live
@@ -49,7 +49,7 @@ the other account's route53, and nothing will ever see them.
 
 ## Deploy
 
-`aws-vault exec sandbox-admin -- ./deploy.sh gitlab-dev` will deploy all the
+`aws-vault exec tooling-admin -- ./deploy.sh gitlab-dev` will deploy all the
 latest changes you have there in your repo.
 
 One thing to note:  If you want to have your cluster operate off of a
@@ -60,7 +60,7 @@ you change it back to master before you make your PR.
 
 ## Delete
 
-`aws-vault exec sandbox-admin -- ./destroy.sh gitlab-dev`
+`aws-vault exec tooling-admin -- ./destroy.sh gitlab-dev`
 
 Also, some namespaces won't delete right off.  You will need to
 follow the procedure in here to make them actually go away:
