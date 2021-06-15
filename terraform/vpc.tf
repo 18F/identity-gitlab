@@ -239,7 +239,7 @@ resource "aws_security_group" "vpc_endpoints" {
     protocol        = "tcp"
     security_groups = [aws_security_group.eks-cluster.id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
   }
-  
+
   ingress {
     description     = "allow eks to contact smtp vpc endpoints"
     from_port       = 587

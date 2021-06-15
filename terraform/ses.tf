@@ -32,7 +32,7 @@ resource "aws_ses_domain_identity" "gitlab" {
 
 resource "kubernetes_secret" "ses-smtp" {
   metadata {
-    name = "ses-smtp"
+    name      = "ses-smtp"
     namespace = "gitlab"
   }
   data = {

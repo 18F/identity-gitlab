@@ -29,6 +29,13 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "smtp-endpoint"            = "email-smtp.${var.region}.amazonaws.com"
     "email-domain"             = "${var.cluster_name}.${var.domain}"
     "smtp-username"            = aws_iam_access_key.gitlab-ses.id
+    "artifactsbucket"          = aws_s3_bucket.artifacts.bucket
+    "lfsbucket"                = aws_s3_bucket.lfs.bucket
+    "packagesbucket"           = aws_s3_bucket.packages.bucket
+    "uploadsbucket"            = aws_s3_bucket.uploads.bucket
+    "externalDiffsbucket"      = aws_s3_bucket.externaldiffs.bucket
+    "terraformStatebucket"     = aws_s3_bucket.terraformstate.bucket
+    "dependencyProxybucket"    = aws_s3_bucket.dependencyproxy.bucket
   }
 }
 
@@ -314,5 +321,76 @@ resource "aws_vpc_endpoint_service" "gitlab" {
 
   tags = {
     Name = "gitlab-${var.cluster_name}.${var.domain}"
+  }
+}
+
+resource "aws_s3_bucket" "artifacts" {
+  bucket = "${var.cluster_name}-gitlab-artifacts"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+resource "aws_s3_bucket" "lfs" {
+  bucket = "${var.cluster_name}-gitlab-lfs"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+resource "aws_s3_bucket" "packages" {
+  bucket = "${var.cluster_name}-gitlab-packages"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+resource "aws_s3_bucket" "uploads" {
+  bucket = "${var.cluster_name}-gitlab-uploads"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+resource "aws_s3_bucket" "externaldiffs" {
+  bucket = "${var.cluster_name}-gitlab-externaldiffs"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+resource "aws_s3_bucket" "terraformstate" {
+  bucket = "${var.cluster_name}-gitlab-terraformstate"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+resource "aws_s3_bucket" "dependencyproxy" {
+  bucket = "${var.cluster_name}-gitlab-dependencyproxy"
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
   }
 }
