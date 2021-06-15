@@ -106,6 +106,8 @@ spec:
           key: password
       minio:
         enabled: false
+      serviceAccount:
+        enabled: true
       appConfig:
         object_store:
           # connection:
