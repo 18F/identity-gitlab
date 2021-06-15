@@ -186,7 +186,7 @@ spec:
       targetPath: global.appConfig.artifacts.bucket
     - kind: ConfigMap
       name: terraform-gitlab-info
-      valuesKey: lfssbucket
+      valuesKey: lfsbucket
       targetPath: global.appConfig.lfs.bucket
     - kind: ConfigMap
       name: terraform-gitlab-info
