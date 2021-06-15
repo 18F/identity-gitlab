@@ -209,6 +209,24 @@ resource "aws_vpc_endpoint" "sts" {
   }
 }
 
+data "aws_vpc_endpoint_service" "email-smtp" {
+  service      = "email-smtp"
+  service_type = "Interface"
+}
+
+resource "aws_vpc_endpoint" "email-smtp" {
+  vpc_id              = aws_vpc.eks.id
+  service_name        = data.aws_vpc_endpoint_service.email-smtp.service_name
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = [aws_security_group.vpc_endpoints.id]
+  subnet_ids          = aws_subnet.service.*.id
+  private_dns_enabled = true
+
+  tags = {
+    Name = "${var.cluster_name} email-smtp"
+  }
+}
+
 resource "aws_security_group" "vpc_endpoints" {
   name        = "vpc_endpoints"
   description = "Allow eks to contact vpc endpoints"
@@ -218,6 +236,14 @@ resource "aws_security_group" "vpc_endpoints" {
     description     = "allow eks to contact vpc endpoints"
     from_port       = 443
     to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.eks-cluster.id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
+  }
+  
+  ingress {
+    description     = "allow eks to contact smtp vpc endpoints"
+    from_port       = 587
+    to_port         = 587
     protocol        = "tcp"
     security_groups = [aws_security_group.eks-cluster.id, aws_eks_cluster.eks.vpc_config[0].cluster_security_group_id]
   }
