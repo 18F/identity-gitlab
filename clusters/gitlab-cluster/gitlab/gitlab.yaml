@@ -108,9 +108,9 @@ spec:
         enabled: false
       appConfig:
         object_store:
-          connection:
-            provider: AWS
-            use_iam_profile: true
+          # connection:
+          #   provider: AWS
+          #   use_iam_profile: true
           enabled: true
           storage_options:
             server_side_encryption: "AES256"
