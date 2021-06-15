@@ -36,9 +36,23 @@ checkbinary() {
 
 REQUIREDBINARIES="
      terraform
+     jq
+     kubectl
 "
 for i in ${REQUIREDBINARIES} ; do
      checkbinary "$i"
+done
+
+# prepare the namespaces for deletion ala
+# https://craignewtondev.medium.com/how-to-fix-kubernetes-namespace-deleting-stuck-in-terminating-state-5ed75792647e
+NAMESPACES="
+     teleport
+     gitlab
+     flux-system
+"
+for i in $NAMESPACES ; do
+     echo "removing finalizer from $i"
+     kubectl get namespace "$i" -o json | jq 'del(.spec.finalizers[0])' | kubectl replace --raw "/api/v1/namespaces/$i/finalize" -f - || true
 done
 
 # do the deed
