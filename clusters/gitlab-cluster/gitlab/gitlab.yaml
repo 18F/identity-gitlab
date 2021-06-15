@@ -211,7 +211,7 @@ spec:
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: gitlabrolearn
-      targetPath: global.serviceAccount.annotations.iam\.amazonaws\.com/role
+      targetPath: global.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: region
