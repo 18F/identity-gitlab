@@ -59,16 +59,6 @@ resource "aws_route53_record" "dashboard" {
   records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
 }
 
-resource "aws_route53_record" "gitlab" {
-  count   = var.bootstrap ? 0 : 1
-  zone_id = data.aws_route53_zone.gitlab.zone_id
-  name    = "gitlab-${var.cluster_name}"
-  type    = "CNAME"
-  ttl     = "300"
-  records = [data.kubernetes_service.teleport.status.0.load_balancer.0.ingress.0.hostname]
-}
-
-
 # This is actually created by the deploy script so that
 # it is available when we do tf, but not stored in the state.
 data "aws_secretsmanager_secret_version" "join-token" {

@@ -292,6 +292,14 @@ resource "aws_acm_certificate_validation" "gitlab" {
   validation_record_fqdns = [for record in aws_route53_record.gitlab-validation : record.fqdn]
 }
 
+resource "aws_route53_record" "gitlab" {
+  count   = var.bootstrap ? 0 : 1
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "gitlab-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname]
+}
 
 data "kubernetes_service" "gitlab-nginx-ingress-controller" {
   depends_on = [aws_db_instance.gitlab]
