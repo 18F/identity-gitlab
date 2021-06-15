@@ -180,31 +180,31 @@ spec:
       valuesKey: smtp-username
       targetPath: global.smtp.user_name
 
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: artifactsbucket
-      targetPath: global.appConfig.artifacts.bucket
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: lfsbucket
-      targetPath: global.appConfig.lfs.bucket
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: packagesbucket
-      targetPath: global.appConfig.packages.bucket
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: uploadsbucket
-      targetPath: global.appConfig.uploads.bucket
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: externalDiffsbucket
-      targetPath: global.appConfig.externalDiffs.bucket
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: terraformStatebucket
-      targetPath: global.appConfig.terraformState.bucket
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: dependencyProxybucket
-      targetPath: global.appConfig.dependencyProxy.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: artifactsbucket
+    #   targetPath: global.appConfig.artifacts.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: lfsbucket
+    #   targetPath: global.appConfig.lfs.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: packagesbucket
+    #   targetPath: global.appConfig.packages.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: uploadsbucket
+    #   targetPath: global.appConfig.uploads.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: externalDiffsbucket
+    #   targetPath: global.appConfig.externalDiffs.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: terraformStatebucket
+    #   targetPath: global.appConfig.terraformState.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: dependencyProxybucket
+    #   targetPath: global.appConfig.dependencyProxy.bucket
