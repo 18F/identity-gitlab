@@ -104,16 +104,16 @@ spec:
         password:
           secret: ses-smtp
           key: password
-      minio:
-        enabled: false
-      appConfig:
-        object_store:
-          enabled: true
-          storage_options:
-            server_side_encryption: "AES256"
-          connection:
-            provider: "AWS"
-            use_iam_profile: true
+      # minio:
+      #   enabled: false
+      # appConfig:
+      #   object_store:
+      #     enabled: true
+      #     storage_options:
+      #       server_side_encryption: "AES256"
+      #     connection:
+      #       provider: "AWS"
+      #       use_iam_profile: true
     postgresql:
       install: false
     redis:
