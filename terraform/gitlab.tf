@@ -15,8 +15,9 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
   }
 
   data = {
-    "cluster_name"             = var.cluster_name,
-    "domain"                   = var.domain,
+    "cluster_name"             = var.cluster_name
+    "region"                   = var.region
+    "domain"                   = var.domain
     "certmanager-issuer-email" = var.certmanager-issuer
     "pghost"                   = aws_db_instance.gitlab.address
     "pgport"                   = aws_db_instance.gitlab.port
@@ -36,6 +37,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "externalDiffsbucket"      = aws_s3_bucket.externaldiffs.bucket
     "terraformStatebucket"     = aws_s3_bucket.terraformstate.bucket
     "dependencyProxybucket"    = aws_s3_bucket.dependencyproxy.bucket
+    "gitlabrolearn"            = aws_iam_role.gitlab.arn
   }
 }
 
@@ -58,7 +60,7 @@ data "aws_secretsmanager_secret_version" "redis-pw-gitlab" {
 # article seems to say that we don't need to worry about, so for
 # now, we are going to go with their recommendation.
 resource "kubernetes_secret" "rds-pw-gitlab" {
-  depends_on = [kubernetes_namespace.teleport]
+  depends_on = [kubernetes_namespace.gitlab]
   metadata {
     name      = "rds-pw-gitlab"
     namespace = "gitlab"
@@ -393,4 +395,81 @@ resource "aws_s3_bucket" "dependencyproxy" {
       }
     }
   }
+}
+
+# set things up for the serviceaccount to have proper perms
+resource "aws_iam_role" "gitlab" {
+  name               = "${var.cluster_name}-gitlab"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "ForAnyValue:StringLike": {
+          "${aws_iam_openid_connect_provider.eks.url}:sub": [
+            "system:serviceaccount:gitlab:*"
+          ]
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "gitlab" {
+  name = "${var.cluster_name}-gitlab-policy"
+  role = aws_iam_role.gitlab.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Storage",
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutEncryptionConfiguration",
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:GetEncryptionConfiguration",
+                "s3:GetObjectRetention",
+                "s3:ListBucketVersions",
+                "s3:ListBucket",
+                "s3:GetBucketVersioning",
+                "s3:PutBucketVersioning",
+                "s3:GetObjectVersion"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${var.cluster_name}-gitlab-dependencyproxy/*",
+                "arn:aws:s3:::${var.cluster_name}-gitlab-dependencyproxy",
+
+                "arn:aws:s3:::${var.cluster_name}-gitlab-terraformstate/*",
+                "arn:aws:s3:::${var.cluster_name}-gitlab-terraformstate",
+
+                "arn:aws:s3:::${var.cluster_name}-gitlab-externaldiffs/*",
+                "arn:aws:s3:::${var.cluster_name}-gitlab-externaldiffs",
+
+                "arn:aws:s3:::${var.cluster_name}-gitlab-uploads/*",
+                "arn:aws:s3:::${var.cluster_name}-gitlab-uploads",
+
+                "arn:aws:s3:::${var.cluster_name}-gitlab-packages/*",
+                "arn:aws:s3:::${var.cluster_name}-gitlab-package",
+
+                "arn:aws:s3:::${var.cluster_name}-gitlab-lfs/*",
+                "arn:aws:s3:::${var.cluster_name}-gitlab-lfs",
+
+                "arn:aws:s3:::${var.cluster_name}-gitlab-artifacts/*",
+                "arn:aws:s3:::${var.cluster_name}-gitlab-artifacts"
+            ]
+        }
+    ]
+}
+EOF
 }
