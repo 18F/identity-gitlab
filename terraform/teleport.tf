@@ -420,6 +420,7 @@ EOF
 # This is so we can allow people to port-forward in only to the git ssh service
 # Adapted from https://community.goteleport.com/t/example-kubernetes-k8s-groups-configuration-with-teleport/907
 resource "kubernetes_role" "teleport-gitssh" {
+  depends_on = [kubernetes_namespace.teleport]
   metadata {
     name      = "teleport-gitssh"
     namespace = "gitlab"
@@ -444,6 +445,7 @@ resource "kubernetes_role" "teleport-gitssh" {
 }
 
 resource "kubernetes_role_binding" "teleport-gitssh" {
+  depends_on = [kubernetes_namespace.teleport]
   metadata {
     name      = "teleport-gitssh"
     namespace = "gitlab"
