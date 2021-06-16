@@ -51,7 +51,7 @@ data "aws_secretsmanager_secret_version" "redis-pw-gitlab" {
 # article seems to say that we don't need to worry about, so for
 # now, we are going to go with their recommendation.
 resource "kubernetes_secret" "rds-pw-gitlab" {
-  depends_on = [kubernetes_namespace.teleport]
+  depends_on = [kubernetes_namespace.gitlab]
   metadata {
     name      = "rds-pw-gitlab"
     namespace = "gitlab"
@@ -283,6 +283,14 @@ resource "aws_acm_certificate_validation" "gitlab" {
   validation_record_fqdns = [for record in aws_route53_record.gitlab-validation : record.fqdn]
 }
 
+resource "aws_route53_record" "gitlab" {
+  count   = var.bootstrap ? 0 : 1
+  zone_id = data.aws_route53_zone.gitlab.zone_id
+  name    = "gitlab-${var.cluster_name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [data.kubernetes_service.gitlab-nginx-ingress-controller.status.0.load_balancer.0.ingress.0.hostname]
+}
 
 data "kubernetes_service" "gitlab-nginx-ingress-controller" {
   depends_on = [aws_db_instance.gitlab]
