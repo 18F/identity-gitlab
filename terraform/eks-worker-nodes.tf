@@ -32,7 +32,10 @@ resource "aws_eks_node_group" "eks" {
   depends_on = [
     aws_iam_role_policy_attachment.eks-node-AmazonEKSWorkerNodePolicy,
     aws_iam_role_policy_attachment.eks-node-AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.eks-node-AmazonEC2ContainerRegistryReadOnly
+    aws_iam_role_policy_attachment.eks-node-AmazonEC2ContainerRegistryReadOnly,
+    aws_nat_gateway.nat,
+    aws_networkfirewall_firewall.networkfw,
+    aws_internet_gateway.eks
   ]
 }
 

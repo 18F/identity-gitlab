@@ -31,6 +31,7 @@ resource "aws_ses_domain_identity" "gitlab" {
 }
 
 resource "kubernetes_secret" "ses-smtp" {
+  depends_on = [kubernetes_namespace.gitlab]
   metadata {
     name = "ses-smtp"
     namespace = "gitlab"
