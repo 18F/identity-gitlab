@@ -49,6 +49,7 @@ NAMESPACES="
      teleport
      gitlab
      flux-system
+     amazon-cloudwatch
 "
 aws eks update-kubeconfig --name "$TF_VAR_cluster_name"
 for i in $NAMESPACES ; do
