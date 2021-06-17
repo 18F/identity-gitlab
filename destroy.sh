@@ -50,6 +50,7 @@ NAMESPACES="
      gitlab
      flux-system
 "
+aws eks update-kubeconfig --name "$TF_VAR_cluster_name"
 for i in $NAMESPACES ; do
      echo "removing finalizer from $i"
      kubectl get namespace "$i" -o json | jq 'del(.spec.finalizers[0])' | kubectl replace --raw "/api/v1/namespaces/$i/finalize" -f - || true

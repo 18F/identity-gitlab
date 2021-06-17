@@ -1,6 +1,7 @@
 private.pem
 public.crt
 .terraform
+terraform/errored.tfstate
 terraform/.terraform/
 terraform/dev.log
 terraform-state/.terraform/
