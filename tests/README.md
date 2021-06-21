@@ -29,10 +29,13 @@ This is editor specific, so is left as an exercise for the reader.
 
 ## Running Tests
 
-Just cd into the `tests` directory and run
+Just cd into the `tests` directory, make sure you have done a `tsh login`
+for your cluster, and run
 ```
 ./test.sh <clustername> <domain>
 ```
+where `<domain>` is the same as what you set in the `domain` variable in
+`terraform/variables.tf`.
 
 This will run a series of tests on the gitlab instance that you have specified.
 If things are good, it should say that everything is ok and return a zero
