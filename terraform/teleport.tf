@@ -33,7 +33,7 @@ data "kubernetes_service" "teleport" {
 }
 
 resource "aws_route53_record" "teleport" {
-  count = var.bootstrap ? 0 : 1
+  count   = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "teleport-${var.cluster_name}"
   type    = "CNAME"
@@ -42,7 +42,7 @@ resource "aws_route53_record" "teleport" {
 }
 
 resource "aws_route53_record" "teleport-wildcard" {
-  count = var.bootstrap ? 0 : 1
+  count   = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "*.teleport-${var.cluster_name}"
   type    = "CNAME"
@@ -51,7 +51,7 @@ resource "aws_route53_record" "teleport-wildcard" {
 }
 
 resource "aws_route53_record" "dashboard" {
-  count = var.bootstrap ? 0 : 1
+  count   = var.bootstrap ? 0 : 1
   zone_id = data.aws_route53_zone.gitlab.zone_id
   name    = "dashboard-${var.cluster_name}"
   type    = "CNAME"
@@ -88,9 +88,9 @@ resource "kubernetes_secret" "teleport-kube-agent-join-token" {
 
 # cert for teleport, attached to the network lb
 resource "aws_acm_certificate" "teleport" {
-  domain_name       = "teleport-${var.cluster_name}.${var.domain}"
+  domain_name               = "teleport-${var.cluster_name}.${var.domain}"
   subject_alternative_names = ["*.teleport-${var.cluster_name}.${var.domain}"]
-  validation_method = "DNS"
+  validation_method         = "DNS"
 
   tags = {
     Name = "teleport-${var.cluster_name}.${var.domain}"
