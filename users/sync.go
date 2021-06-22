@@ -6,11 +6,18 @@ import (
 	"log"
 )
 
+// TODO dry-run flag
+
 type Users struct {
 	Users map[string][]string
 }
 
 func main() {
+	// Read YAML
+	// Log in to Teleport
+	// Read Users
+	// Create/enable necessary users
+	// Disable unnecessary users
 	var users Users
 	userFile, err := ioutil.ReadFile("../../identity-devops/terraform/master/global/users.yaml")
 	if err != nil {
