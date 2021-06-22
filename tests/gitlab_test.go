@@ -141,6 +141,27 @@ func TestGitlabRunner(t *testing.T) {
 	}
 }
 
+func TestGitlabEmail(t *testing.T) {
+	t.Parallel()
+
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=task-runner"})
+	assert.NotEqual(t, len(pods), 0)
+
+	pod := pods[0]
+
+	kube_args := []string{
+		"exec",
+		pod.Name,
+		"--",
+		"/usr/local/bin/gitlab-rails",
+		"runner",
+		"Notify.test_email('identity-devops-bots+gitlab-testing@login.gov', 'GitLab Test - Please Ignore', 'Please Ignore').deliver_now",
+	}
+	k8s.RunKubectl(t, options, kube_args...)
+}
+
+
 // // make sure that we can use git over ssh
 // // XXX not quite working yet
 // func TestGitlabSsh(t *testing.T) {
