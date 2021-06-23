@@ -1,0 +1,6 @@
+---
+users:
+  appdev.lastname:
+    - appdev
+  bizops.lastname:
+    - bizops
