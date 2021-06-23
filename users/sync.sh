@@ -2,14 +2,10 @@
 
 # TDOO: Get token from aws secrets
 # Log in via teleport
-tsh login --proxy teleport-akrito.gitlab.identitysandbox.gov:443 --user akrito
 tsh app login gitlab
 # TODO: Set up cert env vars
-# TODO: Set up cluster name
-# curl --user admin:admin \
-#   --cacert $(tsh app config --format=ca) \
-#   --cert $(tsh app config --format=cert) \
-#   --key $(tsh app config --format=key) \
-#     $(tsh app config --format=uri)/api/users
+export TELEPORT_CERT=$(tsh app config --format=cert)
+export TELEPORT_KEY=$(tsh app config --format=key)
+export GITLAB_BASE_URL=$(tsh app config --format=uri)/
 
 go run sync.go

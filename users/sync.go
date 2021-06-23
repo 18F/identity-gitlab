@@ -12,12 +12,11 @@ import (
 )
 
 const userYaml = "../../identity-devops/terraform/master/global/users.yaml"
+// TODO build a map of needed env vars and Fatal if they don't exist
 const gitlabTokenEnvVar = "GITLAB_API_TOKEN"
-
-// TODO none of these will be hardcoded
-const gitlabBaseURL = "https://gitlab.teleport-akrito.gitlab.identitysandbox.gov/api/v4"
-const certFile = "/Users/alexandergkritikos/.tsh/keys/teleport-akrito.gitlab.identitysandbox.gov/akrito-app/teleport-akrito.gitlab.identitysandbox.gov/gitlab-x509.pem"
-const keyFile = "/Users/alexandergkritikos/.tsh/keys/teleport-akrito.gitlab.identitysandbox.gov/akrito"
+const gitlabBaseURLEnvVar = "GITLAB_BASE_URL"
+const certFileEnv = "TELEPORT_CERT"
+const keyFileEnv = "TELEPORT_KEY"
 
 // TODO add dry-run flag
 
@@ -38,7 +37,7 @@ func main() {
 	}
 
 	// Build HTTP client with Teleport certs
-	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
+	cert, err := tls.LoadX509KeyPair(os.Getenv(certFileEnv), os.Getenv(keyFileEnv))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,7 +52,7 @@ func main() {
 	// Set up GitLab connection
 	git, err := gitlab.NewClient(
 		os.Getenv(gitlabTokenEnvVar),
-		gitlab.WithBaseURL(gitlabBaseURL),
+		gitlab.WithBaseURL(os.Getenv(gitlabBaseURLEnvVar)),
 		gitlab.WithHTTPClient(httpClient),
 	)
 	if err != nil {
