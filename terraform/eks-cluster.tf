@@ -17,7 +17,6 @@ resource "aws_eks_cluster" "eks" {
   role_arn                  = aws_iam_role.eks-cluster.arn
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
-
   vpc_config {
     security_group_ids      = [aws_security_group.eks-cluster.id]
     subnet_ids              = aws_subnet.eks[*].id
@@ -93,4 +92,29 @@ resource "aws_security_group" "eks-cluster" {
   tags = {
     Name = "${var.cluster_name}-eks-cluster"
   }
+}
+
+# map IAM roles to users/groups here, so you can apply RBAC and allow
+# things to access resources in the cluster.
+resource "kubectl_manifest" "aws-auth" {
+  depends_on = [aws_eks_cluster.eks]
+  yaml_body  = <<EOF
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - groups:
+      - system:bootstrappers
+      - system:nodes
+      rolearn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.cluster_name}-noderole
+      username: system:node:{{EC2PrivateDNSName}}
+  mapUsers: |
+    - userarn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform
+      username: terraform
+      groups:
+        - system:masters
+EOF
 }

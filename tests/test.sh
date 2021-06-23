@@ -11,7 +11,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 
 export CLUSTER_NAME="$1"
-export REGION="us-west-2"
+export REGION=${REGION:="us-west-2"}
 export DOMAIN="$2"
 
 if kubectl version >/dev/null 2>&1 ; then
