@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: aws-node-termination-handler
-      version: "0.14.2"
+      version: "0.15.1"
       sourceRef:
         kind: HelmRepository
         name: eks-charts
