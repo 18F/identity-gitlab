@@ -36,7 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error parsing YAML: %s", err)
 	}
-	log.Printf("Parsed: %v", users)
 
 	// Build HTTP client with Teleport certs
 	cert, err := tls.LoadX509KeyPair(certFile, keyFile)
