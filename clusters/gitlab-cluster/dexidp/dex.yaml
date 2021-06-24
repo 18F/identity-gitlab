@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dex
+
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta1
+kind: HelmRepository
+metadata:
+  name: dex
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: https://charts.dexidp.io
+
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: dex
+  namespace: dex
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: dex
+      version: "0.4.0"
+      sourceRef:
+        kind: HelmRepository
+        name: dex
+        namespace: flux-system
+      interval: 1m
+  values:
+    config:
+      storage:
+        type: memory
+      enablePasswordDB: false
+      connectors:
+      - type: authproxy
+        id: piv
+        name: PIV-auth 
+      ingress:
+        enabled: true
+        hosts:
+          - paths:
+              - path: /
+        annotations:
+  valuesFrom:
+    - kind: ConfigMap
+      name: terraform-dex-info
+      valuesKey: dex_url
+      targetPath: config.issuer
+    - kind: ConfigMap
+      name: terraform-dex-info
+      valuesKey: dex_hostname
+      targetPath: config.ingress.hosts[0].host
+    - kind: ConfigMap
+      name: terraform-dex-info
+      valuesKey: cert-arn
+      targetPath: config.ingress.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert

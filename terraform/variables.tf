@@ -105,3 +105,8 @@ variable "bootstrap" {
   type        = bool
   default     = false
 }
+
+variable "uid_list" {
+  type        = list(string)
+  description = "This is a list of PIV UIDs that are allowed into this cluster"
+}

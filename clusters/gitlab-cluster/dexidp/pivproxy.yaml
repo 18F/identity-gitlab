@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pivproxy
+  namespace: dex
+  labels:
+    app: pivproxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pivproxy
+  template:
+    metadata:
+      labels:
+        app: pivproxy
+    spec:
+      containers:
+      - name: pivproxy
+        image: gsatspencer/privproxy:latest
+        ports:
+        - containerPort: 4443
+        env:
+        - name: PROXY_URL
+          valueFrom:
+            configMapKeyRef:
+              name: pivproxy-config
+              key: callback_url
+        - name: PROXY_USERS
+          valueFrom:
+            configMapKeyRef:
+              name: pivproxy-config
+              key: uid_list
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: pivproxy
+# spec:
+#   selector:
+#     app: pivproxy
+#   ports:
+#     - protocol: TCP
+#       port: 4443
