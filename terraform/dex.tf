@@ -19,7 +19,7 @@ resource "kubernetes_config_map" "pivproxy-config" {
 
   data = {
     "fullhostname" = local.dexhostname
-    "callback_url" = "https://${dexhostname}/dex/callback/piv"
+    "callback_url" = "https://${local.dexhostname}/dex/callback/piv"
     "uid_list"     = join(", ", formatlist("\"%s\"", var.uid_list))
     "cert-arn" = aws_acm_certificate.dex.arn
   }

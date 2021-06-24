@@ -46,6 +46,7 @@ spec:
           - paths:
               - path: /
         annotations:
+          alb.ingress.kubernetes.io/scheme: internal
   valuesFrom:
     - kind: ConfigMap
       name: terraform-dex-info
