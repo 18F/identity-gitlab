@@ -107,6 +107,6 @@ variable "bootstrap" {
 }
 
 variable "uid_list" {
+  type        = list(string)
   description = "This is a list of PIV UIDs that are allowed into this cluster"
-  # export TF_VAR_uid_list='"UID=XXX+CN=TIM SPENCER,OU=General Services Administration,O=U.S. Government,C=US", "UID=..."'
 }

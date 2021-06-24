@@ -27,22 +27,20 @@ spec:
             configMapKeyRef:
               name: pivproxy-config
               key: callback_url
-          # value: https://dex_URL_XXX/dex/callback/piv?state=XXX
         - name: PROXY_USERS
           valueFrom:
             configMapKeyRef:
               name: pivproxy-config
               key: uid_list
-          # value: "UID=XXX+CN=TIM SPENCER,OU=General Services Administration,O=U.S. Government,C=US", "UID=..."
 
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: pivproxy
-spec:
-  selector:
-    app: pivproxy
-  ports:
-    - protocol: TCP
-      port: 4443
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: pivproxy
+# spec:
+#   selector:
+#     app: pivproxy
+#   ports:
+#     - protocol: TCP
+#       port: 4443
