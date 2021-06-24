@@ -77,9 +77,7 @@ To get access, you will need to configure teleport.
 - Go to the URL they give you and set up your 2fa
 - Use tsh to log in: `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`
 - Hack:  until https://github.com/gravitational/teleport/issues/7105 is resolved, you will need to do the following steps:
-  - Run `tctl get roles > /tmp/roles.yaml`
-  - Edit `/tmp/roles.yaml` and remove all lines with `internal.kubernetes_groups` and `internal.kubernetes_users` in them.
-  - Run `tctl create -f /tmp/roles.yaml`
+  - Run `tctl get roles | sed -E '/internal.kubernetes_/d' | tctl create`
   - Run `tsh logout ; tsh login` and authenticate again.
 - You should be able to use kubernetes now like `kubectl get all -n teleport`
 - You should then be able to go to the applications section and pull up gitlab.
