@@ -23,7 +23,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "redishost"                = aws_elasticache_replication_group.gitlab.primary_endpoint_address
     "redisport"                = var.redis_port
     "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
-    "fullhostname"             = "gitlab-${var.cluster_name}.${var.domain}"
+    "fullhostname"             = "gitlab.teleport-${var.cluster_name}.${var.domain}"
     "cert-arn"                 = aws_acm_certificate.gitlab.arn
     "email-from"               = "gitlab@${var.cluster_name}.${var.domain}"
     "smtp-endpoint"            = "email-smtp.${var.region}.amazonaws.com"
@@ -40,6 +40,42 @@ data "aws_secretsmanager_secret_version" "rds-pw-gitlab" {
 data "aws_secretsmanager_secret_version" "redis-pw-gitlab" {
   secret_id = "${var.cluster_name}-redis-pw-gitlab"
 }
+
+# SSO secrets
+data "aws_secretsmanager_secret_version" "oidc-github-app-id" {
+  secret_id = "${var.cluster_name}-oidc-github-app-id" 
+}
+data "aws_secretsmanager_secret_version" "oidc-github-app-secret" {
+  secret_id = "${var.cluster_name}-oidc-github-app-secret" 
+}
+resource "kubernetes_secret" "gitlab-github-auth" {
+  depends_on = [kubernetes_namespace.gitlab]
+  metadata {
+    name      = "gitlab-github-auth"
+    namespace = "gitlab"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to labels, e.g. because helm adds stuff.
+      metadata.0.labels,
+    ]
+  }
+
+  data = {
+    provider = jsonencode(
+      {
+        name   = "github"
+        app_id = data.aws_secretsmanager_secret_version.oidc-github-app-id.secret_string
+        app_secret = data.aws_secretsmanager_secret_version.oidc-github-app-secret.secret_string
+        args = {
+          scope = "user:email"
+        }
+      }
+    )
+  }
+}
+
 
 # XXX according to
 # https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1,
