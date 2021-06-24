@@ -7,7 +7,8 @@ resource "kubernetes_namespace" "dex" {
 }
 
 locals {
-  dexhostname = "dex-${var.cluster_name}.${var.domain}"
+  dexhostname  = "dex-${var.cluster_name}.${var.domain}"
+  pivproxyname = "pivproxy-${var.cluster_name}.${var.domain}"
 }
 
 resource "kubernetes_config_map" "pivproxy-config" {
@@ -18,17 +19,18 @@ resource "kubernetes_config_map" "pivproxy-config" {
   }
 
   data = {
-    "fullhostname" = local.dexhostname
-    "callback_url" = "https://${local.dexhostname}/dex/callback/piv"
-    "uid_list"     = join(", ", formatlist("\"%s\"", var.uid_list))
-    "cert-arn" = aws_acm_certificate.dex.arn
+    "fullhostname"  = local.dexhostname
+    "callback_url"  = "https://${local.dexhostname}/dex/callback/piv"
+    "uid_list"      = join(", ", formatlist("\"%s\"", var.uid_list))
+    "cert-arn"      = aws_acm_certificate.dex.arn
+    "pivproxy_name" = local.pivproxyname
   }
 }
 
 # cert for dex, attached to the network lb
 resource "aws_acm_certificate" "dex" {
-  domain_name               = local.dexhostname
-  validation_method         = "DNS"
+  domain_name       = local.dexhostname
+  validation_method = "DNS"
 
   tags = {
     Name = local.dexhostname

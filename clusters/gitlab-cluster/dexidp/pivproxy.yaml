@@ -32,6 +32,11 @@ spec:
             configMapKeyRef:
               name: pivproxy-config
               key: uid_list
+        - name: PROXY_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: pivproxy-config
+              key: pivproxy_name
 
 ---
 apiVersion: v1
