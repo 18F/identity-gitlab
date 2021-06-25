@@ -128,6 +128,22 @@ You will also need to log into gitlab with the initial root password:
 - Log in as root and start configuring!
 - Longer term, we want to figure out how to configure this through code.
 
+#### GitHub Auth
+GitLab supports GitHub SSO. To enable this for your cluster:
+
+1. Follow the instructions at
+   https://docs.github.com/en/developers/apps/building-oauth-apps/creating-an-oauth-app
+   to register the GitLab instance with GitHub. DON'T CLOSE THE WINDOW, as
+   you'll need the client secret for the next step, and can't retrieve it later.
+2. Save the Client ID:
+```
+aws-vault exec tooling-admin -- aws secretsmanager create-secret --name "${CLUSTER_NAME}-oidc-github-app-id" --secret-string "${CLIENT_ID}"
+```
+3. Save the Client Secret:
+```
+aws-vault exec tooling-admin -- aws secretsmanager create-secret --name "${CLUSTER_NAME}-oidc-github-app-secret" --secret-string "${CLIENT_SECRET}"
+```
+
 #### Updates
 To update gitlab, just go into `clusters/gitlab-cluster/gitlab/gitlab.yaml` and
 change the version of the chart and check it in.  FluxCD should deploy it once it
