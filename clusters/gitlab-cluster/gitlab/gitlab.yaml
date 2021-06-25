@@ -104,6 +104,13 @@ spec:
         password:
           secret: ses-smtp
           key: password
+      appConfig:
+        omniauth:
+          enabled: true
+          allowSingleSignOn: ['github']
+          blockAutoCreatedUsers: false
+          providers:
+            - secret: gitlab-github-auth
     postgresql:
       install: false
     redis:
@@ -121,6 +128,10 @@ spec:
       name: terraform-gitlab-info
       valuesKey: cluster_name
       targetPath: global.hosts.hostSuffix
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: fullhostname
+      targetPath: global.hosts.gitlab.name
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: fullhostname
