@@ -19,7 +19,7 @@ resource "kubernetes_config_map" "pivproxy-config" {
   }
 
   data = {
-    "fullhostname"  = local.dexhostname
+    "dex_hostname"  = local.dexhostname
     "callback_url"  = "https://${local.dexhostname}/dex/callback/piv"
     "dex_url"       = "https://${local.dexhostname}"
     "uid_list"      = join(", ", formatlist("\"%s\"", var.uid_list))
