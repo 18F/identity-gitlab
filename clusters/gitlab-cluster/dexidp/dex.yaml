@@ -49,14 +49,14 @@ spec:
           alb.ingress.kubernetes.io/scheme: internal
   valuesFrom:
     - kind: ConfigMap
-      name: terraform-dex-info
+      name: pivproxy-config
       valuesKey: dex_url
       targetPath: config.issuer
     - kind: ConfigMap
-      name: terraform-dex-info
+      name: pivproxy-config
       valuesKey: dex_hostname
       targetPath: config.ingress.hosts[0].host
     - kind: ConfigMap
-      name: terraform-dex-info
+      name: pivproxy-config
       valuesKey: cert-arn
       targetPath: config.ingress.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert
