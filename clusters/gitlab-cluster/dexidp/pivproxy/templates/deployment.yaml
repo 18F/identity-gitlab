@@ -26,12 +26,12 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           env:
-          - name: PROXY_URL
-            value: {{ required "pivproxy.url is required in chart values" .Values.pivproxy.url }}
-          - name: PROXY_USERS
-            value: {{ required "pivproxy.users is required in chart values" .Values.pivproxy.users }}
-          - name: PROXY_NAME
-            value: {{ required "pivproxy.name is required in chart values" .Values.pivproxy.name }}
+            - name: PROXY_URL
+              value: {{ required "pivproxy.url is required in chart values" .Values.pivproxy.url | squote }}
+            - name: PROXY_USERS
+              value: {{ required "pivproxy.users is required in chart values" .Values.pivproxy.users }}
+            - name: PROXY_NAME
+              value: {{ required "pivproxy.name is required in chart values" .Values.pivproxy.name | squote }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
