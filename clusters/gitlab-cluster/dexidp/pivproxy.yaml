@@ -1,51 +1,38 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
 metadata:
   name: pivproxy
   namespace: dex
-  labels:
-    app: pivproxy
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: pivproxy
-  template:
-    metadata:
-      labels:
-        app: pivproxy
+  interval: 5m
+  chart:
     spec:
-      containers:
-      - name: pivproxy
-        image: gsatspencer/privproxy:latest
-        ports:
-        - containerPort: 4443
-        env:
-        - name: PROXY_URL
-          valueFrom:
-            configMapKeyRef:
-              name: pivproxy-config
-              key: callback_url
-        - name: PROXY_USERS
-          valueFrom:
-            configMapKeyRef:
-              name: pivproxy-config
-              key: uid_list
-        - name: PROXY_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: pivproxy-config
-              key: pivproxy_name
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: pivproxy
-spec:
-  selector:
-    app: pivproxy
-  ports:
-    - protocol: TCP
-      port: 4443
+      chart: clusters/gitlab-cluster/dexidp/pivproxy
+      version: "0.1.0"
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+      interval: 1m
+  values:
+    service:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+  valuesFrom:
+    - kind: ConfigMap
+      name: terraform-dex-info
+      valuesKey: pivproxy_name
+      targetPath: pivproxy.name
+    - kind: ConfigMap
+      name: terraform-dex-info
+      valuesKey: uid_list
+      targetPath: pivproxy.users
+    - kind: ConfigMap
+      name: terraform-dex-info
+      valuesKey: callback_url
+      targetPath: pivproxy.url
+    - kind: ConfigMap
+      name: terraform-dex-info
+      valuesKey: pivproxy-cert-arn
+      targetPath: service.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-ssl-cert

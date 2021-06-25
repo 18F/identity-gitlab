@@ -1,0 +1,71 @@
+# Default values for pivproxy.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+pivproxy:
+  # This is the name of the proxy. It should be the same name as in the cert
+  name: ""
+  # This is the list of user UIDs that should be allowed in
+  users: ""
+  # This is the URL of what you want to proxy to once you are authenticated
+  url: ""
+  # This is the secret that gets mounted up so it can do SSL.
+  # It should contain server.crt and server.key.
+  secret: ""
+
+replicaCount: 1
+
+image:
+  repository: gsatspencer/privproxy
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  annotations: {}
+  type: ClusterIP
+  port: 4443
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
