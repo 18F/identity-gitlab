@@ -19,13 +19,13 @@ resource "kubernetes_config_map" "pivproxy-config" {
   }
 
   data = {
-    "dex_hostname"  = local.dexhostname
-    "callback_url"  = "https://${local.dexhostname}/dex/callback/piv"
-    "dex_url"       = "https://${local.dexhostname}"
-    "uid_list"      = yamlencode(join(", ", formatlist("\"%s\"", var.uid_list)))
-    "cert-arn"      = aws_acm_certificate.dex.arn
-    "pivproxy_name" = local.pivproxyname
-    "pivproxy-cert-arn"      = aws_acm_certificate.pivproxy.arn
+    "dex_hostname"      = local.dexhostname
+    "callback_url"      = "https://${local.dexhostname}/dex/callback/piv"
+    "dex_url"           = "https://${local.dexhostname}"
+    "uid_list"          = join(", ", formatlist("\"%s\"", var.uid_list))
+    "cert-arn"          = aws_acm_certificate.dex.arn
+    "pivproxy_name"     = local.pivproxyname
+    "pivproxy-cert-arn" = aws_acm_certificate.pivproxy.arn
   }
 }
 
