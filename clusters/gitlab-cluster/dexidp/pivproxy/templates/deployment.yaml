@@ -49,7 +49,8 @@ spec:
             - name: PROXY_URL
               value: {{ required "pivproxy.url is required in chart values" .Values.pivproxy.url }}
             - name: PROXY_USERS
-              value: {{ required "pivproxy.users is required in chart values" .Values.pivproxy.users }}
+              # value: {{ required "pivproxy.users is required in chart values" .Values.pivproxy.users }}
+              value: "UID=1234"
             - name: PROXY_NAME
               value: {{ required "pivproxy.name is required in chart values" .Values.pivproxy.name }}
       {{- with .Values.nodeSelector }}
