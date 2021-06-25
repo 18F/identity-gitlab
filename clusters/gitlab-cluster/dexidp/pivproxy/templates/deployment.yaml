@@ -47,12 +47,14 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           env:
             - name: PROXY_URL
-              value: {{ required "pivproxy.url is required in chart values" .Values.pivproxy.url }}
+              # value: {{ required "pivproxy.url is required in chart values" .Values.pivproxy.url }}
+              value: https://foo.bar/
             - name: PROXY_USERS
               # value: {{ required "pivproxy.users is required in chart values" .Values.pivproxy.users }}
               value: "UID=1234"
             - name: PROXY_NAME
-              value: {{ required "pivproxy.name is required in chart values" .Values.pivproxy.name }}
+              # value: {{ required "pivproxy.name is required in chart values" .Values.pivproxy.name }}
+              value: foo.bar
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
