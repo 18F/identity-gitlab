@@ -1,0 +1,24 @@
+kind: github
+version: v3
+metadata:
+  # connector name that will be used with `tsh --auth=github login`
+  name: github
+spec:
+  # Client ID of Github OAuth app
+  client_id: $TELEPORT_GITHUB_ID
+  # Client secret of Github OAuth app
+  client_secret: $TELEPORT_GITHUB_SECRET
+  # Connector display name that will be shown on web UI login screen
+  display: Github
+  # Callback URL that will be called after successful authentication
+  redirect_url: https://teleport-${TF_VAR_cluster_name}.gitlab.identitysandbox.gov/v1/webapi/github/callback
+  # Mapping of org/team memberships onto allowed logins and roles
+  teams_to_logins:
+    - logins:
+        - access
+      organization: 18F
+      team: identity-core
+      # List of Kubernetes groups this Github team is allowed to connect to
+      # (see Kubernetes integration for more information)
+      kubernetes_system:
+        - teleport-${TF_VAR_cluster_name}.gitlab.identitysandbox.gov
