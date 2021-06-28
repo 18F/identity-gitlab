@@ -23,7 +23,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "redishost"                = aws_elasticache_replication_group.gitlab.primary_endpoint_address
     "redisport"                = var.redis_port
     "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
-    "fullhostname"             = "gitlab.teleport-${var.cluster_name}.${var.domain}"
+    "fullhostname"             = "teleport-${var.cluster_name}.${var.domain}"
     "cert-arn"                 = aws_acm_certificate.gitlab.arn
     "email-from"               = "gitlab@${var.cluster_name}.${var.domain}"
     "smtp-endpoint"            = "email-smtp.${var.region}.amazonaws.com"
