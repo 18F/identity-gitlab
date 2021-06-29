@@ -130,7 +130,7 @@ spec:
       targetPath: global.hosts.hostSuffix
     - kind: ConfigMap
       name: terraform-gitlab-info
-      valuesKey: fullhostname
+      valuesKey: gitlab_name
       targetPath: global.hosts.gitlab.name
     - kind: ConfigMap
       name: terraform-gitlab-info
