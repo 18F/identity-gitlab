@@ -26,6 +26,8 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
+    gitlab-runner:
+      gitlabUrl: http://gitlab-webservice-default
     nginx-ingress:
       controller:
         scope:
