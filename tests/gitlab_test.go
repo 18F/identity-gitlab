@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -161,6 +162,46 @@ func TestGitlabEmail(t *testing.T) {
 	k8s.RunKubectl(t, options, kube_args...)
 }
 
+// test that github auth button is proper
+func TestGitHubAuthButton(t *testing.T) {
+	t.Parallel()
+
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+
+	// open a tunnel to the service
+	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=webservice"})
+	tunnel := k8s.NewTunnel(options, k8s.ResourceTypePod, pods[0].Name, 0, 8080)
+	defer tunnel.Close()
+	tunnel.ForwardPort(t)
+
+	// Scrape the page for the button and make sure it's a 200
+	url := fmt.Sprintf("http://%s/", tunnel.Endpoint())
+	expectedBody := "oauth-login-github"
+	http_helper.HttpGetWithCustomValidation(
+		t,
+		url,
+		nil,
+		func(statusCode int, body string) bool {
+			return statusCode == 200 && strings.Contains(body, expectedBody)
+		},
+	)
+
+	// Scrape the auth page for the proper hostname and make sure it's a 200
+	url = fmt.Sprintf("http://%s/users/auth/github", tunnel.Endpoint())
+	hostname := fmt.Sprintf("teleport-%s.%s", cluster_name, domain)
+	body := bytes.NewReader([]byte(hostname))
+	http_helper.HTTPDoWithCustomValidation(
+		t,
+		"POST",
+		url,
+		body,
+		nil,
+		func(statusCode int, body string) bool {
+			return statusCode == 200 && strings.Contains(body, hostname)
+		},
+		nil,
+	)
+}
 
 // // make sure that we can use git over ssh
 // // XXX not quite working yet
