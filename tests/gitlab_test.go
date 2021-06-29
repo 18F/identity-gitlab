@@ -169,37 +169,48 @@ func TestGitHubAuthButton(t *testing.T) {
 	options := k8s.NewKubectlOptions("", "", "gitlab")
 
 	// open a tunnel to the service
-	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=webservice"})
-	tunnel := k8s.NewTunnel(options, k8s.ResourceTypePod, pods[0].Name, 0, 8080)
+	tunnel := k8s.NewTunnel(options, k8s.ResourceTypeService, "gitlab-nginx-ingress-controller", 0, 443)
 	defer tunnel.Close()
 	tunnel.ForwardPort(t)
 
+	// set the ServerName so that we use SNI
+	hostname := fmt.Sprintf("gitlab.teleport-%s.%s", cluster_name, domain)
+	tlsconfig := &tls.Config{
+		ServerName:         hostname,
+		InsecureSkipVerify: true,
+	}
+
 	// Scrape the page for the button and make sure it's a 200
-	url := fmt.Sprintf("http://%s/", tunnel.Endpoint())
+	url := fmt.Sprintf("https://%s/", tunnel.Endpoint())
 	expectedBody := "oauth-login-github"
 	http_helper.HttpGetWithCustomValidation(
 		t,
 		url,
-		nil,
+		tlsconfig,
 		func(statusCode int, body string) bool {
 			return statusCode == 200 && strings.Contains(body, expectedBody)
 		},
 	)
 
 	// Scrape the auth page for the proper hostname and make sure it's a 200
-	url = fmt.Sprintf("http://%s/users/auth/github", tunnel.Endpoint())
-	hostname := fmt.Sprintf("teleport-%s.%s", cluster_name, domain)
+	url = fmt.Sprintf("https://%s/users/auth/github", tunnel.Endpoint())
 	body := bytes.NewReader([]byte(hostname))
+	headers := map[string]string{
+		"Host":    hostname,
+		"Origin":  fmt.Sprintf("https://%s", hostname),
+		"Referer": fmt.Sprintf("https://%s/users/sign_in", hostname),
+		"Cookie":  "experimentation_subject_id=XXX; _gitlab_session=XXX; __Host-grv_app_session=XXX",
+	}
 	http_helper.HTTPDoWithCustomValidation(
 		t,
 		"POST",
 		url,
 		body,
-		nil,
+		headers,
 		func(statusCode int, body string) bool {
 			return statusCode == 200 && strings.Contains(body, hostname)
 		},
-		nil,
+		tlsconfig,
 	)
 }
 
