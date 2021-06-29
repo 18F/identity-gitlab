@@ -26,8 +26,6 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
-    gitlab-runner:
-      gitlabUrl: http://gitlab-webservice-default
     nginx-ingress:
       controller:
         scope:
@@ -138,6 +136,10 @@ spec:
       name: terraform-gitlab-info
       valuesKey: fullhostname
       targetPath: global.hosts.gitlab.hostnameOverride
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: fullhostname
+      targetPath: gitlab-runner.gitlabUrl
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: certmanager-issuer-email
