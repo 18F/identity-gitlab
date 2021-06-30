@@ -73,7 +73,7 @@ popd
 aws eks update-kubeconfig --name "$TF_VAR_cluster_name"
 kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < ./teleport-roles.yaml
 
-# Enable Github SSO
+# Enable Github SSO if the secrets exist
 if aws secretsmanager describe-secret --secret-id "${TF_VAR_cluster_name}-teleport-github-id" >/dev/null 2>&1 ; then
     export TELEPORT_GITHUB_ID=$(aws secretsmanager get-secret-value --secret-id "${TF_VAR_cluster_name}-teleport-github-id" | jq '.SecretString')
     export TELEPORT_GITHUB_SECRET=$(aws secretsmanager get-secret-value --secret-id "${TF_VAR_cluster_name}-teleport-github-secret" | jq '.SecretString')
