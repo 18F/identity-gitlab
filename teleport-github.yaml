@@ -15,9 +15,34 @@ spec:
   # Mapping of org/team memberships onto allowed logins and roles
   teams_to_logins:
     - logins:
-        - root
+        - editor
+        - access
+        - admin
+        - k8s-admin
+      organization: 18F
+      team: identity-devops
+      # List of Kubernetes groups this Github team is allowed to connect to
+      # (see Kubernetes integration for more information)
+      kubernetes_system:
+        - teleport-${TF_VAR_cluster_name}.gitlab.identitysandbox.gov
+    - logins:
+        - editor
+        - access
+        - admin
+        - k8s-admin
       organization: 18F
       team: identity-core
+      # List of Kubernetes groups this Github team is allowed to connect to
+      # (see Kubernetes integration for more information)
+      kubernetes_system:
+        - teleport-${TF_VAR_cluster_name}.gitlab.identitysandbox.gov
+    - logins:
+        - editor
+        - access
+        - admin
+        - k8s-admin
+      organization: 18F
+      team: identity-security
       # List of Kubernetes groups this Github team is allowed to connect to
       # (see Kubernetes integration for more information)
       kubernetes_system:
