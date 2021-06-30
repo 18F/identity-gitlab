@@ -138,7 +138,7 @@ spec:
       targetPath: global.hosts.gitlab.hostnameOverride
     - kind: ConfigMap
       name: terraform-gitlab-info
-      valuesKey: fullhostname
+      valuesKey: ci_server_url
       targetPath: gitlab-runner.gitlabUrl
     - kind: ConfigMap
       name: terraform-gitlab-info

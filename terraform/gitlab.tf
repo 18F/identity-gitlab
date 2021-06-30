@@ -25,6 +25,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
     "gitlab_name"              = "gitlab.teleport-${var.cluster_name}.${var.domain}"
     "fullhostname"             = "gitlab-${var.cluster_name}.${var.domain}"
+    "ci_server_url"            = "https://gitlab-${var.cluster_name}.${var.domain}"
     "cert-arn"                 = aws_acm_certificate.gitlab.arn
     "email-from"               = "gitlab@${var.cluster_name}.${var.domain}"
     "smtp-endpoint"            = "email-smtp.${var.region}.amazonaws.com"
