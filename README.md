@@ -144,6 +144,9 @@ aws-vault exec tooling-admin -- aws secretsmanager create-secret --name "${CLUST
 aws-vault exec tooling-admin -- aws secretsmanager create-secret --name "${CLUSTER_NAME}-oidc-github-app-secret" --secret-string "${CLIENT_SECRET}"
 ```
 
+Teleport also supports GitHub SSO, but requires an 18F GitHub Administrator to OK the request. Follow the same steps above for Teleport, but name the secrets `${CLUSTER_NAME}-teleport-github-id` and `${CLUSTER_NAME}-teleport-github-secret`.
+
+
 #### Updates
 To update gitlab, just go into `clusters/gitlab-cluster/gitlab/gitlab.yaml` and
 change the version of the chart and check it in.  FluxCD should deploy it once it
