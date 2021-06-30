@@ -130,12 +130,16 @@ spec:
       targetPath: global.hosts.hostSuffix
     - kind: ConfigMap
       name: terraform-gitlab-info
-      valuesKey: fullhostname
+      valuesKey: gitlab_name
       targetPath: global.hosts.gitlab.name
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: fullhostname
       targetPath: global.hosts.gitlab.hostnameOverride
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: ci_server_url
+      targetPath: gitlab-runner.gitlabUrl
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: certmanager-issuer-email
