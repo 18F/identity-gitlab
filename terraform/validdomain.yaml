@@ -22,3 +22,4 @@ domainAllowList:
 - gitlab.com
 - .api.letsencrypt.org
 - rubygems.org
+- registry.yarnpkg.com
