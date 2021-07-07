@@ -142,6 +142,10 @@ spec:
       targetPath: gitlab-runner.gitlabUrl
     - kind: ConfigMap
       name: terraform-gitlab-info
+      valuesKey: ci_server_url
+      targetPath: gitlab-runner.runners.cloneUrl
+    - kind: ConfigMap
+      name: terraform-gitlab-info
       valuesKey: certmanager-issuer-email
       targetPath: certmanager-issuer.email
     - kind: ConfigMap
