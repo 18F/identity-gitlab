@@ -3,8 +3,7 @@
 #
 
 provider "aws" {
-  region  = var.region
-  version = "~> 3.35"
+  region = var.region
 }
 
 terraform {
@@ -32,7 +31,6 @@ data "aws_caller_identity" "current" {}
 
 # This is the main provider
 provider "kubernetes" {
-  version                = "~> 2.0.3"
   host                   = aws_eks_cluster.eks.endpoint
   cluster_ca_certificate = base64decode(aws_eks_cluster.eks.certificate_authority[0].data)
   exec {
@@ -45,7 +43,6 @@ provider "kubernetes" {
 
 # This is so we can install helm stuff
 provider "helm" {
-  version = "~> 2.1.0"
   kubernetes {
     host                   = aws_eks_cluster.eks.endpoint
     cluster_ca_certificate = base64decode(aws_eks_cluster.eks.certificate_authority[0].data)
@@ -59,7 +56,6 @@ provider "helm" {
 }
 
 provider "kubectl" {
-  version          = ">= 1.10.0"
   load_config_file = false
   # apply_retry_count      = 15
   host                   = aws_eks_cluster.eks.endpoint
