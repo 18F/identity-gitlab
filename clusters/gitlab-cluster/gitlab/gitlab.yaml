@@ -188,3 +188,7 @@ spec:
       name: terraform-gitlab-info
       valuesKey: smtp-username
       targetPath: global.smtp.user_name
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: runner-iam-role
+      targetPath: gitlab.task-runner.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
