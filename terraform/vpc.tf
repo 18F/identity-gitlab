@@ -11,10 +11,10 @@ resource "aws_vpc" "eks" {
   enable_dns_support   = true
   enable_dns_hostnames = true
 
-  tags = map(
-    "Name", "${var.cluster_name}-vpc",
-    "kubernetes.io/cluster/${var.cluster_name}", "shared",
-  )
+  tags = tomap({
+    "Name"                                      = "${var.cluster_name}-vpc",
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared",
+  })
 }
 
 # Public subnets to land NAT.
@@ -26,9 +26,9 @@ resource "aws_subnet" "nat" {
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = true
 
-  tags = map(
-    "Name", "${var.cluster_name}-nat-${count.index}",
-  )
+  tags = tomap({
+    "Name" = "${var.cluster_name}-nat-${count.index}",
+  })
 }
 
 # Public subnets to land loadbalancers/etc.
@@ -40,11 +40,11 @@ resource "aws_subnet" "public_eks" {
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = true
 
-  tags = map(
-    "Name", "${var.cluster_name}-public-${count.index}",
-    "kubernetes.io/cluster/${var.cluster_name}", "shared",
-    "kubernetes.io/role/elb", "1",
-  )
+  tags = tomap({
+    "Name"                                      = "${var.cluster_name}-public-${count.index}",
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared",
+    "kubernetes.io/role/elb"                    = "1",
+  })
 }
 
 # eks subnets
@@ -56,11 +56,11 @@ resource "aws_subnet" "eks" {
   vpc_id                  = aws_vpc.eks.id
   map_public_ip_on_launch = false
 
-  tags = map(
-    "Name", "${var.cluster_name}-node-${count.index}",
-    "kubernetes.io/cluster/${var.cluster_name}", "shared",
-    "kubernetes.io/role/internal-elb", "1"
-  )
+  tags = tomap({
+    "Name"                                      = "${var.cluster_name}-node-${count.index}",
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared",
+    "kubernetes.io/role/internal-elb"           = "1"
+  })
 }
 
 # db/service networks
