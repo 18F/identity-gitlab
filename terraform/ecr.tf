@@ -21,7 +21,7 @@ resource "aws_ecr_repository_policy" "gitlab" {
     "Version": "2008-10-17",
     "Statement": [
         {
-            "Sid": "Allow gitlab runners to read/pull/push",
+            "Sid": "Allow gitlab runners push and pull access",
             "Effect": "Allow",
             "Principal": "${aws_iam_role.gitlab-runner.arn}",
             "Action": [
@@ -38,7 +38,7 @@ resource "aws_ecr_repository_policy" "gitlab" {
             ]
         },
         {
-            "Sid": "Allow this EKS cluster to read/pull",
+            "Sid": "Allow this EKS cluster to pull",
             "Effect": "Allow",
             "Principal": "${aws_iam_role.eks-cluster.arn}",
             "Action": [
