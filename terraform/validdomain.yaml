@@ -24,3 +24,4 @@ domainAllowList:
 - rubygems.org
 - registry.yarnpkg.com
 - gcr.io
+- index.docker.io
