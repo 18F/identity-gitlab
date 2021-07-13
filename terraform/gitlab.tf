@@ -400,7 +400,7 @@ resource "aws_iam_role_policy" "gitlab-runner" {
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "Allow gitlab runners push and pull access",
+            "Sid": "GitlabRunners",
             "Effect": "Allow",
             "Resource": "*",
             "Action": [
