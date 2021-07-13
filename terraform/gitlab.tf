@@ -390,3 +390,33 @@ resource "aws_iam_role" "gitlab-runner" {
 }
 POLICY
 }
+
+resource "aws_iam_role_policy" "gitlab-runner" {
+  name = "${var.cluster_name}-gitlab-runner"
+  role = aws_iam_role.gitlab-runner.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Allow gitlab runners push and pull access",
+            "Effect": "Allow",
+            "Resource": "*",
+            "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:PutImage",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:DescribeRepositories",
+                "ecr:GetRepositoryPolicy",
+                "ecr:ListImages"
+            ]
+        }
+    ]
+}
+EOF
+}
