@@ -26,3 +26,4 @@ domainAllowList:
 - gcr.io
 - index.docker.io
 - dl.yarnpkg.com
+- deb.nodesource.com
