@@ -21,9 +21,15 @@ domainAllowList:
 - github-releases.githubusercontent.com
 - gitlab.com
 - .api.letsencrypt.org
+# Downloading Ruby packages
 - rubygems.org
+# Downloading Yarn packages
 - registry.yarnpkg.com
+# Downloading image/containers
 - gcr.io
 - index.docker.io
+# Downloading Node/Yarn binaries
 - dl.yarnpkg.com
 - deb.nodesource.com
+- deb.debian.org
+- security.debian.org
