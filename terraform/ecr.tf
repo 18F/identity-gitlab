@@ -23,7 +23,9 @@ resource "aws_ecr_repository_policy" "gitlab" {
         {
             "Sid": "Allow gitlab runners push and pull access",
             "Effect": "Allow",
-            "Principal": "${aws_iam_role.gitlab-runner.arn}",
+            "Principal": {
+              "AWS": "${aws_iam_role.gitlab-runner.arn}"
+            },
             "Action": [
                 "ecr:GetDownloadUrlForLayer",
                 "ecr:BatchGetImage",
@@ -38,9 +40,11 @@ resource "aws_ecr_repository_policy" "gitlab" {
             ]
         },
         {
-            "Sid": "Allow this EKS cluster to pull",
+            "Sid": "Allow this EKS cluster to pull images",
             "Effect": "Allow",
-            "Principal": "${aws_iam_role.eks-cluster.arn}",
+            "Principal": {
+              "AWS": "${aws_iam_role.eks-cluster.arn}"
+            },
             "Action": [
                 "ecr:GetDownloadUrlForLayer",
                 "ecr:BatchGetImage",
