@@ -30,7 +30,6 @@ spec:
       task-runner:
         serviceAccount:
           enabled: true
-          # create: true
     nginx-ingress:
       controller:
         scope:
