@@ -26,6 +26,11 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
+    gitlab:
+      task-runner:
+        serviceAccount:
+          enabled: true
+          # create: true
     nginx-ingress:
       controller:
         scope:
