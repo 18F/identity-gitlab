@@ -26,10 +26,6 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
-    gitlab:
-      task-runner:
-        serviceAccount:
-          enabled: true
     nginx-ingress:
       controller:
         scope:
@@ -195,4 +191,4 @@ spec:
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: runner-iam-role
-      targetPath: gitlab.task-runner.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+      targetPath: gitlab.gitlab-runner.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
