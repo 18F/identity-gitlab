@@ -26,6 +26,8 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
+    runners:
+      serviceAccountName: gitlab-gitlab-runner
     nginx-ingress:
       controller:
         scope:
