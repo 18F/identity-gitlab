@@ -191,4 +191,4 @@ spec:
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: runner-iam-role
-      targetPath: gitlab.gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
+      targetPath: gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
