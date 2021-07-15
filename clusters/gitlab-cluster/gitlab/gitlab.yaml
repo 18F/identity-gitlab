@@ -26,8 +26,11 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
-    runners:
-      serviceAccountName: gitlab-gitlab-runner
+    gitlab-runner:
+      rbac:
+        create: true
+        resources: ["pods", "pods/exec", "secrets"]
+        verbs: ["get", "list", "watch", "create", "patch", "delete"]
     nginx-ingress:
       controller:
         scope:
