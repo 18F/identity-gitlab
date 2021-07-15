@@ -381,7 +381,7 @@ resource "aws_iam_role" "gitlab-runner" {
       "Condition": {
         "ForAnyValue:StringEquals": {
           "${aws_iam_openid_connect_provider.eks.url}:sub": [
-            "system:serviceaccount:teleport:gitlab-gitlab-runner"
+            "system:serviceaccount:gitlab:gitlab-gitlab-runner"
           ]
         }
       }
