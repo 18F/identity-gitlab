@@ -408,6 +408,7 @@ resource "aws_iam_role_policy" "gitlab-runner" {
                 "ecr:BatchGetImage",
                 "ecr:BatchCheckLayerAvailability",
                 "ecr:PutImage",
+                "ecr:GetAuthorizationToken",
                 "ecr:InitiateLayerUpload",
                 "ecr:UploadLayerPart",
                 "ecr:CompleteLayerUpload",
