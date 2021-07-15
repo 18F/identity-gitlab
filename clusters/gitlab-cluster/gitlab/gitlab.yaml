@@ -27,6 +27,8 @@ spec:
       interval: 1m
   values:
     gitlab-runner:
+      runners:
+        serviceAccountName: gitlab-gitlab-runner
       rbac:
         create: true
         resources: ["pods", "pods/exec", "secrets"]
