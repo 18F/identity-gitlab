@@ -391,7 +391,7 @@ resource "aws_iam_role" "gitlab-runner" {
       "Sid": "AllowAdmins",
       "Effect": "Allow",
       "Principal": {
-          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/auto_terraform",
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform",
           "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator"
       },
       "Action": "sts:AssumeRole"
