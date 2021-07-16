@@ -190,17 +190,17 @@ func TestGitlabRunnerRoleECR(t *testing.T) {
 	}
 
 	// Delete repo if it is there for some reason
-	os.Setenv("TERRATEST_IAM_ROLE", foundRole)
-	_, err := aws.CreateAwsSessionFromRole(region, foundRole)
-	assert.NoError(t, err)
-	reponame := "XXXloginTestAslkdfjgadklfjaskldfjasdlkfjasdf"
+	reponame := "terratest"
 	repo, err := aws.GetECRRepoE(t, region, reponame)
 	if err == nil {
 		aws.DeleteECRRepo(t, region, repo)
 	}
+	// assume the runner role
+	os.Setenv("TERRATEST_IAM_ROLE", foundRole)
 	// Make sure we can create a repo with the runner role
 	aws.CreateECRRepo(t, region, reponame)
 	// Clean up afterwards
+	os.Unsetenv("TERRATEST_IAM_ROLE")
 	aws.DeleteECRRepo(t, region, repo)
 }
 
