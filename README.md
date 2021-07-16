@@ -85,25 +85,11 @@ To get access, you will need to configure teleport.
 
 #### git-ssh
 
-To allow people to clone repos from gitlab, make sure that they
-are added as a teleport user with `kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl users add <username> --roles=access,gitssh` and can do a `tsh login --proxy teleport-<clustername>.<domain>:443 --user <yourusername>`.  Then, have them edit `~/.ssh/ssh_config` and add this
-to the end:
-```
-Host gitlab-<clustername>.<domain>
-  ProxyCommand ~/src/identity-gitlab/git-proxycommand.sh
-```
-You may have to change the path to the `git-proxycommand.sh` script.
-
-They then should be able to do `git clone git@gitlab-<clustername>.<domain>:root/repo.git`
-to clone a repo on the gitlab server.
+see [git-ssh](docs/Gitlab.md#Git-over-ssh)
 
 #### Automated git-ssh
 
-The `gitlab-<clustername>.<domain>` endpoint should be plumbed up in the app environments
-if you have turned `gitlab_enabled` on in tfvars, so things should be able to do a 
-`git clone git@gitlab:root/repo.git` without hinderance.  *NOTE:* you will need to use
-`gitlab` for the hostname instead of the proper `gitlab-<clustername>.<domain>` domain
-because you need to get to the privatelink instead of the real load balancer endpoint.
+see [Automated git-ssh](docs/Gitlab.md#Automated-git-ssh)
 
 #### Editing users/roles
 
