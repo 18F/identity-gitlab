@@ -57,10 +57,8 @@ spec:
             https: http
           annotations:
             service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: Name=gitlab-nginx,class=nginx,role=test,vpc=test
-            service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
             service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
             service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-            service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
             service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
             service.beta.kubernetes.io/aws-load-balancer-type: external
             service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: "preserve_client_ip.enabled=false"
