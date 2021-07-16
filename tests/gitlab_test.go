@@ -201,6 +201,7 @@ func TestGitlabRunnerRoleECR(t *testing.T) {
 	aws.CreateECRRepo(t, region, reponame)
 	// Clean up afterwards
 	os.Unsetenv("TERRATEST_IAM_ROLE")
+	repo, err = aws.GetECRRepoE(t, region, reponame)
 	aws.DeleteECRRepo(t, region, repo)
 }
 
