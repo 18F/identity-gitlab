@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gruntwork-io/terratest/modules/aws"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	// "github.com/gruntwork-io/terratest/modules/ssh"
@@ -142,7 +143,7 @@ func TestGitlabRunner(t *testing.T) {
 	}
 }
 
-// look for gitlab-runner being alive
+// look for gitlab-runner having a role configured for it
 func TestGitlabRunnerRole(t *testing.T) {
 	t.Parallel()
 
@@ -166,6 +167,41 @@ func TestGitlabRunnerRole(t *testing.T) {
 		}
 		assert.True(t, foundRole)
 	}
+}
+
+// test that the runner role can do ECR stuff
+func TestGitlabRunnerRoleECR(t *testing.T) {
+	t.Parallel()
+
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=gitlab-gitlab-runner"})
+	assert.NotEqual(t, len(pods), 0)
+	foundRole := ""
+	for _, pod := range pods {
+		assert.True(t, IsPodAvailable(&pod))
+
+		// get the runner role ARN
+		for _, v := range pod.Spec.Containers[0].Env {
+			if v.Name == "AWS_ROLE_ARN" {
+				foundRole = v.Value
+				assert.Regexp(t, "^arn:aws:iam::.*:role/gitlabtest-gitlab-runner$", v.Value)
+			}
+		}
+	}
+
+	// Delete repo if it is there for some reason
+	reponame := "terratest"
+	repo, err := aws.GetECRRepoE(t, region, reponame)
+	if err == nil {
+		aws.DeleteECRRepo(t, region, repo)
+	}
+	// assume the runner role
+	os.Setenv("TERRATEST_IAM_ROLE", foundRole)
+	// Make sure we can create a repo with the runner role
+	aws.CreateECRRepo(t, region, reponame)
+	// Clean up afterwards
+	os.Unsetenv("TERRATEST_IAM_ROLE")
+	aws.DeleteECRRepo(t, region, repo)
 }
 
 // look for gitlab-task-runner being alive

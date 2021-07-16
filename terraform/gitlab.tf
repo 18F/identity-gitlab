@@ -373,6 +373,7 @@ resource "aws_iam_role" "gitlab-runner" {
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Sid": "allowRunnerServiceAccount",
       "Effect": "Allow",
       "Principal": {
         "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
@@ -385,6 +386,15 @@ resource "aws_iam_role" "gitlab-runner" {
           ]
         }
       }
+    },
+    {
+      "Sid": "AllowAdmins",
+      "Effect": "Allow",
+      "Principal": {
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform",
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator"
+      },
+      "Action": "sts:AssumeRole"
     }
   ]
 }
