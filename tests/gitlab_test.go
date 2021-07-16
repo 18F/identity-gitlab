@@ -2,6 +2,7 @@ package test
 
 import (
 	"crypto/tls"
+	// "encoding/json"
 	"fmt"
 	"net"
 	"os"
@@ -141,6 +142,44 @@ func TestGitlabRunner(t *testing.T) {
 	}
 }
 
+// look for gitlab-runner being alive
+func TestGitlabRunnerRole(t *testing.T) {
+	t.Parallel()
+
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=gitlab-gitlab-runner"})
+	assert.NotEqual(t, len(pods), 0)
+	for _, pod := range pods {
+		assert.True(t, IsPodAvailable(&pod))
+
+		// see if the pod has AWS_ROLE_ARN set to a role
+		foundRole := false
+		for _, v := range pod.Spec.Containers[0].Env {
+			// podJSON, err := json.MarshalIndent(v, "", "  ")
+			// assert.NoError(t, err)
+			// fmt.Printf("%s\n", string(podJSON))
+
+			if v.Name == "AWS_ROLE_ARN" {
+				foundRole = true
+				assert.Regexp(t, "^arn:aws:iam::.*:role/gitlabtest-gitlab-runner$", v.Value)
+			}
+		}
+		assert.True(t, foundRole)
+	}
+}
+
+// look for gitlab-task-runner being alive
+func TestGitlabTaskRunner(t *testing.T) {
+	t.Parallel()
+
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=task-runner"})
+	assert.NotEqual(t, len(pods), 0)
+	for _, pod := range pods {
+		assert.True(t, IsPodAvailable(&pod))
+	}
+}
+
 func TestGitlabEmail(t *testing.T) {
 	t.Parallel()
 
@@ -160,7 +199,6 @@ func TestGitlabEmail(t *testing.T) {
 	}
 	k8s.RunKubectl(t, options, kube_args...)
 }
-
 
 // // make sure that we can use git over ssh
 // // XXX not quite working yet
