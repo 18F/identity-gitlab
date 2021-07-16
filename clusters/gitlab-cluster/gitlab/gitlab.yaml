@@ -26,6 +26,19 @@ spec:
         namespace: flux-system
       interval: 1m
   values:
+    gitlab:
+      task-runner:
+        enabled: true
+        serviceAccount:
+          create: true
+          enabled: true
+    gitlab-runner:
+      runners:
+        serviceAccountName: gitlab-gitlab-runner
+      rbac:
+        create: true
+        resources: ["pods", "pods/exec", "secrets"]
+        verbs: ["get", "list", "watch", "create", "patch", "delete"]
     nginx-ingress:
       controller:
         scope:
@@ -187,3 +200,7 @@ spec:
       name: terraform-gitlab-info
       valuesKey: smtp-username
       targetPath: global.smtp.user_name
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: runner-iam-role
+      targetPath: gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn

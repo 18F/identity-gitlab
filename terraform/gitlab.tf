@@ -31,6 +31,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "smtp-endpoint"            = "email-smtp.${var.region}.amazonaws.com"
     "email-domain"             = "${var.cluster_name}.${var.domain}"
     "smtp-username"            = aws_iam_access_key.gitlab-ses.id
+    "runner-iam-role"          = aws_iam_role.gitlab-runner.arn
   }
 }
 
@@ -361,4 +362,63 @@ resource "aws_vpc_endpoint_service" "gitlab" {
   tags = {
     Name = "gitlab-${var.cluster_name}.${var.domain}"
   }
+}
+
+# This role is assigned with IRSA to the gitlab runner.
+# You can attach policies to this to give the runner MOAR POWAH!
+resource "aws_iam_role" "gitlab-runner" {
+  name               = "${var.cluster_name}-gitlab-runner"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "${aws_iam_openid_connect_provider.eks.url}:sub": [
+            "system:serviceaccount:gitlab:gitlab-gitlab-runner"
+          ]
+        }
+      }
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "gitlab-runner" {
+  name = "${var.cluster_name}-gitlab-runner"
+  role = aws_iam_role.gitlab-runner.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "GitlabRunners",
+            "Effect": "Allow",
+            "Resource": "*",
+            "Action": [
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:PutImage",
+                "ecr:GetAuthorizationToken",
+                "ecr:CreateRepository",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:DescribeRepositories",
+                "ecr:GetRepositoryPolicy",
+                "ecr:ListImages"
+            ]
+        }
+    ]
+}
+EOF
 }
