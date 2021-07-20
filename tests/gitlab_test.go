@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"strconv"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
@@ -21,6 +22,7 @@ import (
 var cluster_name = os.Getenv("CLUSTER_NAME")
 var region = os.Getenv("REGION")
 var domain = os.Getenv("DOMAIN")
+var timeout = 5
 
 // make sure the containers within the pod are all started and ready
 func IsPodAvailable(pod *corev1.Pod) bool {
@@ -235,6 +237,42 @@ func TestGitlabEmail(t *testing.T) {
 		"Notify.test_email('identity-devops-bots+gitlab-testing@login.gov', 'GitLab Test - Please Ignore', 'Please Ignore').deliver_now",
 	}
 	k8s.RunKubectl(t, options, kube_args...)
+}
+
+// Test that network traffic through the LB is routed correctly, e.g. source IP
+// is not preserved (response code 000) and proxy protocol v2 is not used
+// (response code 400).
+func TestLoadBalancer(t *testing.T) {
+	t.Parallel()
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+
+	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=webservice"})
+	assert.NotEqual(t, len(pods), 0)
+	pod := pods[0]
+
+	url := fmt.Sprintf("https://gitlab-%s.gitlab.identitysandbox.gov", cluster_name)
+
+	kube_args := []string{
+		"exec",
+		pod.Name,
+		"-c",
+		"webservice",
+		"--",
+		"/usr/bin/curl",
+		"--silent",
+		"--fail",
+		"--output",
+		"/dev/null",
+		"--max-time",
+		strconv.Itoa(timeout),
+		"--write-out",
+		"%{response_code}",
+		url,
+	}
+	response_code, err := k8s.RunKubectlAndGetOutputE(t, options, kube_args...)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "302", response_code)
 }
 
 // // make sure that we can use git over ssh
