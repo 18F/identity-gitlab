@@ -17,9 +17,8 @@ are added as a teleport user with `kubectl exec -it deployment.apps/teleport-clu
 to the end:
 ```
 Host gitlab-<clustername>.<domain>
-  ProxyCommand ~/src/identity-gitlab/git-proxycommand.sh
+  ProxyCommand kubectl exec -q --stdin -n gitlab service/gitlab-gitlab-shell -- /usr/sbin/sshd -i
 ```
-You may have to change the path to the `git-proxycommand.sh` script.
 
 They then should be able to do `git clone git@gitlab-<clustername>.<domain>:root/repo.git`
 to clone a repo on the gitlab server.
