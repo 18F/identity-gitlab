@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"regexp"
 	"strings"
 	"strconv"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	// "github.com/gruntwork-io/terratest/modules/ssh"
+	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -273,6 +275,68 @@ func TestLoadBalancer(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Equal(t, "302", response_code)
+}
+
+// Tests requred attributes on the Target Group
+func TestTargetGroup(t *testing.T) {
+	t.Parallel()
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+
+	// Find the DNS name for the ingress
+	ingresses := k8s.ListIngresses(t, options, metav1.ListOptions{LabelSelector: "app=webservice"})
+	assert.NotEmpty(t, ingresses)
+	lb_ingresses := ingresses[0].Status.LoadBalancer.Ingress
+	assert.NotEmpty(t, lb_ingresses)
+	hostname := lb_ingresses[0].Hostname
+
+	// Get the AWS name
+	re := regexp.MustCompile(`^k8s-gitlab-gitlabng-[^-]+`)
+	name := re.FindString(hostname)
+	assert.NotEmpty(t, name)
+	
+	// Create an ELB client
+	sess, err := aws.NewAuthenticatedSession(region)
+	assert.NoError(t, err)
+	elb := elbv2.New(sess)
+
+	// Find the load balancer associated with that hostname
+	lbin := &elbv2.DescribeLoadBalancersInput{
+		Names: []*string{
+			&name,
+		},
+	}
+	lbout, err := elb.DescribeLoadBalancers(lbin)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, lbout.LoadBalancers)
+
+	lb := lbout.LoadBalancers[0]
+	// Sanity check the DNS names match
+	assert.Equal(t, *lb.DNSName, hostname)
+
+	// Get the target groups for the lb
+	tgs_in := &elbv2.DescribeTargetGroupsInput{
+		LoadBalancerArn: lb.LoadBalancerArn,
+	}
+	tgs_out, err := elb.DescribeTargetGroups(tgs_in)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, tgs_out.TargetGroups)
+
+	// Validate the target groups' attributes
+	for _, targetGroup := range tgs_out.TargetGroups {
+		attr_in := &elbv2.DescribeTargetGroupAttributesInput{
+			TargetGroupArn: targetGroup.TargetGroupArn,
+		}
+		attr_out, err := elb.DescribeTargetGroupAttributes(attr_in)
+		assert.NoError(t, err)
+		for _, attr := range attr_out.Attributes {
+			switch *attr.Key {
+			case "proxy_protocol_v2.enabled":
+				assert.Equal(t, "false", *attr.Value)
+			case "preserve_client_ip.enabled":
+				assert.Equal(t, "false", *attr.Value)
+			}
+		}
+	}
 }
 
 // // make sure that we can use git over ssh
