@@ -10,6 +10,7 @@ domainAllowList:
 - registry-1.docker.io
 - .cloudfront.net
 - storage.googleapis.com
+- chromedriver.storage.googleapis.com
 - pkg-containers.githubusercontent.com
 - .teleport.cluster.local
 - auth.docker.io

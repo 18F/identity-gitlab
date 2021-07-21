@@ -6,13 +6,16 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"regexp"
 	"strings"
+	"strconv"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	// "github.com/gruntwork-io/terratest/modules/ssh"
+	"github.com/aws/aws-sdk-go/service/elbv2"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,6 +24,7 @@ import (
 var cluster_name = os.Getenv("CLUSTER_NAME")
 var region = os.Getenv("REGION")
 var domain = os.Getenv("DOMAIN")
+var timeout = 5
 
 // make sure the containers within the pod are all started and ready
 func IsPodAvailable(pod *corev1.Pod) bool {
@@ -235,6 +239,104 @@ func TestGitlabEmail(t *testing.T) {
 		"Notify.test_email('identity-devops-bots+gitlab-testing@login.gov', 'GitLab Test - Please Ignore', 'Please Ignore').deliver_now",
 	}
 	k8s.RunKubectl(t, options, kube_args...)
+}
+
+// Test that network traffic through the LB is routed correctly, e.g. source IP
+// is not preserved (response code 000) and proxy protocol v2 is not used
+// (response code 400).
+func TestLoadBalancer(t *testing.T) {
+	t.Parallel()
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+
+	pods := k8s.ListPods(t, options, metav1.ListOptions{LabelSelector: "app=webservice"})
+	assert.NotEqual(t, len(pods), 0)
+	pod := pods[0]
+
+	url := fmt.Sprintf("https://gitlab-%s.gitlab.identitysandbox.gov", cluster_name)
+
+	kube_args := []string{
+		"exec",
+		pod.Name,
+		"-c",
+		"webservice",
+		"--",
+		"/usr/bin/curl",
+		"--silent",
+		"--fail",
+		"--output",
+		"/dev/null",
+		"--max-time",
+		strconv.Itoa(timeout),
+		"--write-out",
+		"%{response_code}",
+		url,
+	}
+	response_code, err := k8s.RunKubectlAndGetOutputE(t, options, kube_args...)
+
+	assert.NoError(t, err)
+	assert.Equal(t, "302", response_code)
+}
+
+// Tests required Target Group attributes
+func TestTargetGroup(t *testing.T) {
+	t.Parallel()
+	options := k8s.NewKubectlOptions("", "", "gitlab")
+
+	// Find the DNS name for the ingress.
+	ingresses := k8s.ListIngresses(t, options, metav1.ListOptions{LabelSelector: "app=webservice"})
+	assert.NotEmpty(t, ingresses)
+	lbIngresses := ingresses[0].Status.LoadBalancer.Ingress
+	assert.NotEmpty(t, lbIngresses)
+	hostname := lbIngresses[0].Hostname
+
+	// Get the AWS name, a substring of the DNS name.
+	re := regexp.MustCompile(`^k8s-gitlab-gitlabng-[^-]+`)
+	name := re.FindString(hostname)
+	assert.NotEmpty(t, name)
+	
+	// Create an ELB client
+	sess, err := aws.NewAuthenticatedSession(region)
+	assert.NoError(t, err)
+	elb := elbv2.New(sess)
+
+	// Find the load balancer associated with that hostname
+	lbIn := &elbv2.DescribeLoadBalancersInput{
+		Names: []*string{
+			&name,
+		},
+	}
+	lbOut, err := elb.DescribeLoadBalancers(lbIn)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, lbOut.LoadBalancers)
+
+	lb := lbOut.LoadBalancers[0]
+	// Sanity check the DNS names match
+	assert.Equal(t, *lb.DNSName, hostname)
+
+	// Get the target groups for the lb
+	tgs_in := &elbv2.DescribeTargetGroupsInput{
+		LoadBalancerArn: lb.LoadBalancerArn,
+	}
+	tgs_out, err := elb.DescribeTargetGroups(tgs_in)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, tgs_out.TargetGroups)
+
+	// Validate the target groups' attributes
+	for _, targetGroup := range tgs_out.TargetGroups {
+		attr_in := &elbv2.DescribeTargetGroupAttributesInput{
+			TargetGroupArn: targetGroup.TargetGroupArn,
+		}
+		attr_out, err := elb.DescribeTargetGroupAttributes(attr_in)
+		assert.NoError(t, err)
+		for _, attr := range attr_out.Attributes {
+			switch *attr.Key {
+			case "proxy_protocol_v2.enabled":
+				assert.Equal(t, "false", *attr.Value)
+			case "preserve_client_ip.enabled":
+				assert.Equal(t, "false", *attr.Value)
+			}
+		}
+	}
 }
 
 // // make sure that we can use git over ssh
