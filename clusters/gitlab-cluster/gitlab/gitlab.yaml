@@ -93,8 +93,9 @@ spec:
     certmanager:
       install: false
     global:
-      minio:
-        name: gitlab-minio-svc
+      hosts:
+        minio:
+          name: gitlab-minio-svc
       ingress:
         enabled: false
         configureCertmanager: false
