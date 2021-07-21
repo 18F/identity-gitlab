@@ -277,19 +277,19 @@ func TestLoadBalancer(t *testing.T) {
 	assert.Equal(t, "302", response_code)
 }
 
-// Tests requred attributes on the Target Group
+// Tests required Target Group attributes
 func TestTargetGroup(t *testing.T) {
 	t.Parallel()
 	options := k8s.NewKubectlOptions("", "", "gitlab")
 
-	// Find the DNS name for the ingress
+	// Find the DNS name for the ingress.
 	ingresses := k8s.ListIngresses(t, options, metav1.ListOptions{LabelSelector: "app=webservice"})
 	assert.NotEmpty(t, ingresses)
-	lb_ingresses := ingresses[0].Status.LoadBalancer.Ingress
-	assert.NotEmpty(t, lb_ingresses)
-	hostname := lb_ingresses[0].Hostname
+	lbIngresses := ingresses[0].Status.LoadBalancer.Ingress
+	assert.NotEmpty(t, lbIngresses)
+	hostname := lbIngresses[0].Hostname
 
-	// Get the AWS name
+	// Get the AWS name, a substring of the DNS name.
 	re := regexp.MustCompile(`^k8s-gitlab-gitlabng-[^-]+`)
 	name := re.FindString(hostname)
 	assert.NotEmpty(t, name)
@@ -300,16 +300,16 @@ func TestTargetGroup(t *testing.T) {
 	elb := elbv2.New(sess)
 
 	// Find the load balancer associated with that hostname
-	lbin := &elbv2.DescribeLoadBalancersInput{
+	lbIn := &elbv2.DescribeLoadBalancersInput{
 		Names: []*string{
 			&name,
 		},
 	}
-	lbout, err := elb.DescribeLoadBalancers(lbin)
+	lbOut, err := elb.DescribeLoadBalancers(lbIn)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, lbout.LoadBalancers)
+	assert.NotEmpty(t, lbOut.LoadBalancers)
 
-	lb := lbout.LoadBalancers[0]
+	lb := lbOut.LoadBalancers[0]
 	// Sanity check the DNS names match
 	assert.Equal(t, *lb.DNSName, hostname)
 
