@@ -466,7 +466,20 @@ resource "aws_iam_role_policy" "gitlab-runner" {
             "Effect": "Allow",
             "Resource": [
               "arn:aws:s3:::${var.cluster_name}-runner/*",
-              "arn:aws:s3:::${var.cluster_name}-runner/"
+              "arn:aws:s3:::${var.cluster_name}-runner/",
+              "arn:aws:s3:::${var.cluster_name}-registry/*",
+              "arn:aws:s3:::${var.cluster_name}-registry/",
+              "arn:aws:s3:::${var.cluster_name}-lfs/*",
+              "arn:aws:s3:::${var.cluster_name}-lfs/",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/*",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/",
+              "arn:aws:s3:::${var.cluster_name}-uploads/*",
+              "arn:aws:s3:::${var.cluster_name}-uploads/",
+              "arn:aws:s3:::${var.cluster_name}-packages/*",
+              "arn:aws:s3:::${var.cluster_name}-packages/",
+              "arn:aws:s3:::${var.cluster_name}-backups/*",
+              "arn:aws:s3:::${var.cluster_name}-backups/"
+
             ],
             "Action": [
                 "s3:*"
