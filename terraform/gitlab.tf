@@ -16,6 +16,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
 
   data = {
     "cluster_name"             = var.cluster_name,
+    "region"                   = var.region,
     "domain"                   = var.domain,
     "certmanager-issuer-email" = var.certmanager-issuer
     "pghost"                   = aws_db_instance.gitlab.address
@@ -39,6 +40,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "uploads-bucket"           = "${var.cluster_name}_uploads"
     "packages-bucket"          = "${var.cluster_name}_packages"
     "backups-bucket"           = "${var.cluster_name}_backups"
+    "runner-bucket"            = "${var.cluster_name}_runner"
   }
 }
 
@@ -458,6 +460,17 @@ resource "aws_iam_role_policy" "gitlab-runner" {
                 "ecr:GetRepositoryPolicy",
                 "ecr:ListImages"
             ]
+        },
+        {
+            "Sid": "S3",
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:s3:::${var.cluster_name}_runner/*",
+              "arn:aws:s3:::${var.cluster_name}_runner/"
+            ],
+            "Action": [
+                "s3:*"
+            ]
         }
     ]
 }
@@ -465,9 +478,7 @@ EOF
 }
 
 
-########## storage-iam-role
-
-# This role is assigned with IRSA to the a bunch of things.
+# This role is assigned with IRSA to a bunch of things.
 resource "aws_iam_role" "storage-iam-role" {
   name               = "${var.cluster_name}-storage-iam-role"
   assume_role_policy = <<POLICY

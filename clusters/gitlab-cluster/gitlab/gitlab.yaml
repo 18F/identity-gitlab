@@ -45,6 +45,9 @@ spec:
         create: true
         resources: ["pods", "pods/exec", "secrets"]
         verbs: ["get", "list", "watch", "create", "patch", "delete"]
+      cache:
+        s3ServerAddress: s3.amazonaws.com
+        secretName: gitlab-storage
     nginx-ingress:
       controller:
         scope:
@@ -100,14 +103,9 @@ spec:
       install: false
     registry:
       enabled: false
-      # storage:
-      #   secret: gitlab-storage
-      #   key: connection
     global:
       minio:
         enabled: false
-      # registry:
-      #   bucket: gitlab-registry-storage
       hosts:
         minio:
           name: gitlab-minio-svc
@@ -251,10 +249,6 @@ spec:
       name: terraform-gitlab-info
       valuesKey: runner-iam-role
       targetPath: gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
-    # - kind: ConfigMap
-    #   name: terraform-gitlab-info
-    #   valuesKey: storage-iam-role
-    #   targetPath: registry.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
@@ -267,10 +261,6 @@ spec:
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
       targetPath: gitlab.task-runner.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
-    # - kind: ConfigMap
-    #   name: terraform-gitlab-info
-    #   valuesKey: registry-bucket
-    #   targetPath: global.registry.bucket
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: lfs-bucket
@@ -291,3 +281,11 @@ spec:
       name: terraform-gitlab-info
       valuesKey: backups-bucket
       targetPath: global.appConfig.backups.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: region
+      targetPath: gitlab-runner.runners.cache.s3BucketLocation
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: runner-bucket
+      targetPath: gitlab-runner.runners.cache.s3BucketName
