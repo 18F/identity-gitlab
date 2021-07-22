@@ -16,6 +16,7 @@ metadata:
   namespace: gitlab
 spec:
   interval: 5m
+  timeout: 9m
   chart:
     spec:
       chart: gitlab
@@ -25,7 +26,6 @@ spec:
         name: gitlab
         namespace: flux-system
       interval: 1m
-      timeout: 500
   values:
     gitlab:
       task-runner:
