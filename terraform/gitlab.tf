@@ -547,3 +547,29 @@ resource "aws_iam_role_policy" "storage-iam-role" {
 }
 EOF
 }
+
+locals {
+  buckets = [
+    "${var.cluster_name}_registry",
+    "${var.cluster_name}_lfs",
+    "${var.cluster_name}_artifacts",
+    "${var.cluster_name}_uploads",
+    "${var.cluster_name}_packages",
+    "${var.cluster_name}_backups",
+    "${var.cluster_name}_runner"
+  ]
+}
+
+# s3 buckets used for various components of gitlab
+resource "aws_s3_bucket" "gitlab_bucket" {
+  count = length(buckets)
+  bucket = buckets[count.index]
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
