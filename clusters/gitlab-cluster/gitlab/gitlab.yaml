@@ -26,7 +26,6 @@ spec:
         name: gitlab
         namespace: flux-system
       interval: 1m
-      timeout: 500
   values:
     gitlab:
       task-runner:
