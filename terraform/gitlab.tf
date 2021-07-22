@@ -562,8 +562,8 @@ locals {
 
 # s3 buckets used for various components of gitlab
 resource "aws_s3_bucket" "gitlab_bucket" {
-  count = length(buckets)
-  bucket = buckets[count.index]
+  count = length(local.buckets)
+  bucket = local.buckets[count.index]
 
   server_side_encryption_configuration {
     rule {
