@@ -41,13 +41,13 @@ spec:
     gitlab-runner:
       runners:
         serviceAccountName: gitlab-gitlab-runner
+        cache:
+          s3ServerAddress: s3.amazonaws.com
+          secretName: gitlab-storage
       rbac:
         create: true
         resources: ["pods", "pods/exec", "secrets"]
         verbs: ["get", "list", "watch", "create", "patch", "delete"]
-      cache:
-        s3ServerAddress: s3.amazonaws.com
-        secretName: gitlab-storage
     nginx-ingress:
       controller:
         scope:
