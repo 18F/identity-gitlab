@@ -32,6 +32,13 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "email-domain"             = "${var.cluster_name}.${var.domain}"
     "smtp-username"            = aws_iam_access_key.gitlab-ses.id
     "runner-iam-role"          = aws_iam_role.gitlab-runner.arn
+    "storage-iam-role"         = aws_iam_role.storage-iam-role.arn
+    "registry-bucket"          = "${var.cluster_name}_registry"
+    "lfs-bucket"               = "${var.cluster_name}_lfs"
+    "artifacts-bucket"         = "${var.cluster_name}_artifacts"
+    "uploads-bucket"           = "${var.cluster_name}_uploads"
+    "packages-bucket"          = "${var.cluster_name}_packages"
+    "backups-bucket"           = "${var.cluster_name}_backups"
   }
 }
 
@@ -68,10 +75,10 @@ resource "kubernetes_secret" "gitlab-github-auth" {
   data = {
     provider = jsonencode(
       {
-        name   = "github"
-        app_id = data.aws_secretsmanager_secret_version.oidc-github-app-id.secret_string
+        name       = "github"
+        app_id     = data.aws_secretsmanager_secret_version.oidc-github-app-id.secret_string
         app_secret = data.aws_secretsmanager_secret_version.oidc-github-app-secret.secret_string
-        args = {
+        args       = {
           scope = "user:email"
         }
       }
@@ -79,6 +86,30 @@ resource "kubernetes_secret" "gitlab-github-auth" {
   }
 }
 
+# This tells the storage stuff to use IAM roles for auth
+resource "kubernetes_secret" "gitlab-storage" {
+  depends_on = [kubernetes_namespace.gitlab]
+  metadata {
+    name      = "gitlab-storage"
+    namespace = "gitlab"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to labels, e.g. because helm adds stuff.
+      metadata.0.labels,
+    ]
+  }
+
+  data = {
+    connection = jsonencode(
+      {
+        provider = "AWS"
+        region   = var.region
+      }
+    )
+  }
+}
 
 # XXX according to
 # https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1,
@@ -426,6 +457,79 @@ resource "aws_iam_role_policy" "gitlab-runner" {
                 "ecr:DescribeRepositories",
                 "ecr:GetRepositoryPolicy",
                 "ecr:ListImages"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+
+########## storage-iam-role
+
+# This role is assigned with IRSA to the a bunch of things.
+resource "aws_iam_role" "storage-iam-role" {
+  name               = "${var.cluster_name}-storage-iam-role"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "allowS3",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "${aws_iam_openid_connect_provider.eks.url}:sub": [
+            "system:serviceaccount:gitlab:gitlab-gitlab-runner"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "AllowAdmins",
+      "Effect": "Allow",
+      "Principal": {
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform",
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "storage-iam-role" {
+  name = "${var.cluster_name}-storage-iam-role"
+  role = aws_iam_role.storage-iam-role.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3",
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:s3:::${var.cluster_name}_registry/*",
+              "arn:aws:s3:::${var.cluster_name}_registry/",
+              "arn:aws:s3:::${var.cluster_name}_lfs/*",
+              "arn:aws:s3:::${var.cluster_name}_lfs/",
+              "arn:aws:s3:::${var.cluster_name}_artifacts/*",
+              "arn:aws:s3:::${var.cluster_name}_artifacts/",
+              "arn:aws:s3:::${var.cluster_name}_uploads/*",
+              "arn:aws:s3:::${var.cluster_name}_uploads/",
+              "arn:aws:s3:::${var.cluster_name}_packages/*",
+              "arn:aws:s3:::${var.cluster_name}_packages/",
+              "arn:aws:s3:::${var.cluster_name}_backups/*",
+              "arn:aws:s3:::${var.cluster_name}_backups/"
+            ],
+            "Action": [
+                "s3:*"
             ]
         }
     ]
