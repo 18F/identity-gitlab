@@ -465,8 +465,8 @@ resource "aws_iam_role_policy" "gitlab-runner" {
             "Sid": "S3",
             "Effect": "Allow",
             "Resource": [
-              "arn:aws:s3:::${var.cluster_name}_runner/*",
-              "arn:aws:s3:::${var.cluster_name}_runner/"
+              "arn:aws:s3:::${var.cluster_name}-runner/*",
+              "arn:aws:s3:::${var.cluster_name}-runner/"
             ],
             "Action": [
                 "s3:*"
