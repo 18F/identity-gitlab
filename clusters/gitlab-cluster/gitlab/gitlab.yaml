@@ -35,6 +35,8 @@ spec:
     gitlab-runner:
       runners:
         serviceAccountName: gitlab-gitlab-runner
+        env:
+          CLUSTER_NAME: 
       rbac:
         create: true
         resources: ["pods", "pods/exec", "secrets"]
@@ -133,6 +135,10 @@ spec:
       name: terraform-gitlab-info
       valuesKey: cluster_name
       targetPath: clusterName
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: cluster_name
+      targetPath: gitlab-runner.runners.env.CLUSTER_NAME
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: domain
