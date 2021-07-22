@@ -96,6 +96,8 @@ spec:
       hosts:
         minio:
           name: gitlab-minio-svc
+          servicePort: 9000
+          https: false
       ingress:
         enabled: false
         configureCertmanager: false
