@@ -34,13 +34,13 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "smtp-username"            = aws_iam_access_key.gitlab-ses.id
     "runner-iam-role"          = aws_iam_role.gitlab-runner.arn
     "storage-iam-role"         = aws_iam_role.storage-iam-role.arn
-    "registry-bucket"          = "${var.cluster_name}_registry"
-    "lfs-bucket"               = "${var.cluster_name}_lfs"
-    "artifacts-bucket"         = "${var.cluster_name}_artifacts"
-    "uploads-bucket"           = "${var.cluster_name}_uploads"
-    "packages-bucket"          = "${var.cluster_name}_packages"
-    "backups-bucket"           = "${var.cluster_name}_backups"
-    "runner-bucket"            = "${var.cluster_name}_runner"
+    "registry-bucket"          = "${var.cluster_name}-registry"
+    "lfs-bucket"               = "${var.cluster_name}-lfs"
+    "artifacts-bucket"         = "${var.cluster_name}-artifacts"
+    "uploads-bucket"           = "${var.cluster_name}-uploads"
+    "packages-bucket"          = "${var.cluster_name}-packages"
+    "backups-bucket"           = "${var.cluster_name}-backups"
+    "runner-bucket"            = "${var.cluster_name}-runner"
   }
 }
 
@@ -526,18 +526,18 @@ resource "aws_iam_role_policy" "storage-iam-role" {
             "Sid": "S3",
             "Effect": "Allow",
             "Resource": [
-              "arn:aws:s3:::${var.cluster_name}_registry/*",
-              "arn:aws:s3:::${var.cluster_name}_registry/",
-              "arn:aws:s3:::${var.cluster_name}_lfs/*",
-              "arn:aws:s3:::${var.cluster_name}_lfs/",
-              "arn:aws:s3:::${var.cluster_name}_artifacts/*",
-              "arn:aws:s3:::${var.cluster_name}_artifacts/",
-              "arn:aws:s3:::${var.cluster_name}_uploads/*",
-              "arn:aws:s3:::${var.cluster_name}_uploads/",
-              "arn:aws:s3:::${var.cluster_name}_packages/*",
-              "arn:aws:s3:::${var.cluster_name}_packages/",
-              "arn:aws:s3:::${var.cluster_name}_backups/*",
-              "arn:aws:s3:::${var.cluster_name}_backups/"
+              "arn:aws:s3:::${var.cluster_name}-registry/*",
+              "arn:aws:s3:::${var.cluster_name}-registry/",
+              "arn:aws:s3:::${var.cluster_name}-lfs/*",
+              "arn:aws:s3:::${var.cluster_name}-lfs/",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/*",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/",
+              "arn:aws:s3:::${var.cluster_name}-uploads/*",
+              "arn:aws:s3:::${var.cluster_name}-uploads/",
+              "arn:aws:s3:::${var.cluster_name}-packages/*",
+              "arn:aws:s3:::${var.cluster_name}-packages/",
+              "arn:aws:s3:::${var.cluster_name}-backups/*",
+              "arn:aws:s3:::${var.cluster_name}-backups/"
             ],
             "Action": [
                 "s3:*"
@@ -550,13 +550,13 @@ EOF
 
 locals {
   buckets = [
-    "${var.cluster_name}_registry",
-    "${var.cluster_name}_lfs",
-    "${var.cluster_name}_artifacts",
-    "${var.cluster_name}_uploads",
-    "${var.cluster_name}_packages",
-    "${var.cluster_name}_backups",
-    "${var.cluster_name}_runner"
+    "${var.cluster_name}-registry",
+    "${var.cluster_name}-lfs",
+    "${var.cluster_name}-artifacts",
+    "${var.cluster_name}-uploads",
+    "${var.cluster_name}-packages",
+    "${var.cluster_name}-backups",
+    "${var.cluster_name}-runner"
   ]
 }
 
