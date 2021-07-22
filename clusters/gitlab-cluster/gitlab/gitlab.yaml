@@ -99,14 +99,15 @@ spec:
     certmanager:
       install: false
     registry:
-      storage:
-        secret: gitlab-storage
-        key: connection
+      enabled: false
+      # storage:
+      #   secret: gitlab-storage
+      #   key: connection
     global:
       minio:
         enabled: false
-      registry:
-        bucket: gitlab-registry-storage
+      # registry:
+      #   bucket: gitlab-registry-storage
       hosts:
         minio:
           name: gitlab-minio-svc
@@ -250,10 +251,10 @@ spec:
       name: terraform-gitlab-info
       valuesKey: runner-iam-role
       targetPath: gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: storage-iam-role
-      targetPath: registry.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: storage-iam-role
+    #   targetPath: registry.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
@@ -266,10 +267,10 @@ spec:
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
       targetPath: gitlab.task-runner.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
-    - kind: ConfigMap
-      name: terraform-gitlab-info
-      valuesKey: registry-bucket
-      targetPath: global.registry.bucket
+    # - kind: ConfigMap
+    #   name: terraform-gitlab-info
+    #   valuesKey: registry-bucket
+    #   targetPath: global.registry.bucket
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: lfs-bucket
