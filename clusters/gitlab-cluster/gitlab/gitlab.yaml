@@ -137,28 +137,22 @@ spec:
           key: password
       appConfig:
         lfs:
-          bucket: gitlab-lfs-storage
           connection:
             secret: gitlab-storage
             key: connection
         artifacts:
-          bucket: gitlab-artifacts-storage
           connection:
             secret: gitlab-storage
             key: connection
         uploads:
-          bucket: gitlab-uploads-storage
           connection:
             secret: gitlab-storage
             key: connection
         packages:
-          bucket: gitlab-packages-storage
           connection:
             secret: gitlab-storage
             key: connection
         backups:
-          bucket: gitlab-backup-storage
-          tmpBucket: gitlab-tmp-storage
           connection:
             secret: gitlab-storage
             key: connection
@@ -281,6 +275,10 @@ spec:
       name: terraform-gitlab-info
       valuesKey: backups-bucket
       targetPath: global.appConfig.backups.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: tmpbackups-bucket
+      targetPath: global.appConfig.backups.tmpBucket
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: region
