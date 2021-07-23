@@ -16,6 +16,7 @@ metadata:
   namespace: gitlab
 spec:
   interval: 5m
+  timeout: 9m
   chart:
     spec:
       chart: gitlab
@@ -29,12 +30,20 @@ spec:
     gitlab:
       task-runner:
         enabled: true
+        backups:
+          objectStorage:
+            config:
+              secret: gitlab-storage
+              key: connection
         serviceAccount:
           create: true
           enabled: true
     gitlab-runner:
       runners:
         serviceAccountName: gitlab-gitlab-runner
+        cache:
+          s3ServerAddress: s3.amazonaws.com
+          secretName: gitlab-storage
       rbac:
         create: true
         resources: ["pods", "pods/exec", "secrets"]
@@ -92,7 +101,16 @@ spec:
         create: true
     certmanager:
       install: false
+    registry:
+      enabled: false
     global:
+      minio:
+        enabled: false
+      hosts:
+        minio:
+          name: gitlab-minio-svc
+          servicePort: 9000
+          https: false
       ingress:
         enabled: false
         configureCertmanager: false
@@ -118,6 +136,26 @@ spec:
           secret: ses-smtp
           key: password
       appConfig:
+        lfs:
+          connection:
+            secret: gitlab-storage
+            key: connection
+        artifacts:
+          connection:
+            secret: gitlab-storage
+            key: connection
+        uploads:
+          connection:
+            secret: gitlab-storage
+            key: connection
+        packages:
+          connection:
+            secret: gitlab-storage
+            key: connection
+        backups:
+          connection:
+            secret: gitlab-storage
+            key: connection
         omniauth:
           enabled: true
           allowSingleSignOn: ['github']
@@ -205,3 +243,47 @@ spec:
       name: terraform-gitlab-info
       valuesKey: runner-iam-role
       targetPath: gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: storage-iam-role
+      targetPath: gitlab.webservice.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: storage-iam-role
+      targetPath: gitlab.sidekiq.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: storage-iam-role
+      targetPath: gitlab.task-runner.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: lfs-bucket
+      targetPath: global.appConfig.lfs.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: artifacts-bucket
+      targetPath: global.appConfig.artifacts.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: uploads-bucket
+      targetPath: global.appConfig.uploads.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: packages-bucket
+      targetPath: global.appConfig.packages.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: backups-bucket
+      targetPath: global.appConfig.backups.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: tmpbackups-bucket
+      targetPath: global.appConfig.backups.tmpBucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: region
+      targetPath: gitlab-runner.runners.cache.s3BucketLocation
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: runner-bucket
+      targetPath: gitlab-runner.runners.cache.s3BucketName

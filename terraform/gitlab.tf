@@ -16,6 +16,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
 
   data = {
     "cluster_name"             = var.cluster_name,
+    "region"                   = var.region,
     "domain"                   = var.domain,
     "certmanager-issuer-email" = var.certmanager-issuer
     "pghost"                   = aws_db_instance.gitlab.address
@@ -32,6 +33,15 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "email-domain"             = "${var.cluster_name}.${var.domain}"
     "smtp-username"            = aws_iam_access_key.gitlab-ses.id
     "runner-iam-role"          = aws_iam_role.gitlab-runner.arn
+    "storage-iam-role"         = aws_iam_role.storage-iam-role.arn
+    "registry-bucket"          = "${var.cluster_name}-registry"
+    "lfs-bucket"               = "${var.cluster_name}-lfs"
+    "artifacts-bucket"         = "${var.cluster_name}-artifacts"
+    "uploads-bucket"           = "${var.cluster_name}-uploads"
+    "packages-bucket"          = "${var.cluster_name}-packages"
+    "backups-bucket"           = "${var.cluster_name}-backups"
+    "runner-bucket"            = "${var.cluster_name}-runner"
+    "tmpbackups-bucket"        = "${var.cluster_name}-tmpbackups"
   }
 }
 
@@ -46,10 +56,10 @@ data "aws_secretsmanager_secret_version" "redis-pw-gitlab" {
 
 # SSO secrets
 data "aws_secretsmanager_secret_version" "oidc-github-app-id" {
-  secret_id = "${var.cluster_name}-oidc-github-app-id" 
+  secret_id = "${var.cluster_name}-oidc-github-app-id"
 }
 data "aws_secretsmanager_secret_version" "oidc-github-app-secret" {
-  secret_id = "${var.cluster_name}-oidc-github-app-secret" 
+  secret_id = "${var.cluster_name}-oidc-github-app-secret"
 }
 resource "kubernetes_secret" "gitlab-github-auth" {
   depends_on = [kubernetes_namespace.gitlab]
@@ -68,8 +78,8 @@ resource "kubernetes_secret" "gitlab-github-auth" {
   data = {
     provider = jsonencode(
       {
-        name   = "github"
-        app_id = data.aws_secretsmanager_secret_version.oidc-github-app-id.secret_string
+        name       = "github"
+        app_id     = data.aws_secretsmanager_secret_version.oidc-github-app-id.secret_string
         app_secret = data.aws_secretsmanager_secret_version.oidc-github-app-secret.secret_string
         args = {
           scope = "user:email"
@@ -79,6 +89,30 @@ resource "kubernetes_secret" "gitlab-github-auth" {
   }
 }
 
+# This tells the storage stuff to use IAM roles for auth
+resource "kubernetes_secret" "gitlab-storage" {
+  depends_on = [kubernetes_namespace.gitlab]
+  metadata {
+    name      = "gitlab-storage"
+    namespace = "gitlab"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to labels, e.g. because helm adds stuff.
+      metadata.0.labels,
+    ]
+  }
+
+  data = {
+    connection = jsonencode(
+      {
+        provider = "AWS"
+        region   = var.region
+      }
+    )
+  }
+}
 
 # XXX according to
 # https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1,
@@ -428,8 +462,133 @@ resource "aws_iam_role_policy" "gitlab-runner" {
                 "ecr:GetRepositoryPolicy",
                 "ecr:ListImages"
             ]
+        },
+        {
+            "Sid": "S3",
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:s3:::${var.cluster_name}-runner/*",
+              "arn:aws:s3:::${var.cluster_name}-runner/",
+              "arn:aws:s3:::${var.cluster_name}-registry/*",
+              "arn:aws:s3:::${var.cluster_name}-registry/",
+              "arn:aws:s3:::${var.cluster_name}-lfs/*",
+              "arn:aws:s3:::${var.cluster_name}-lfs/",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/*",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/",
+              "arn:aws:s3:::${var.cluster_name}-uploads/*",
+              "arn:aws:s3:::${var.cluster_name}-uploads/",
+              "arn:aws:s3:::${var.cluster_name}-packages/*",
+              "arn:aws:s3:::${var.cluster_name}-packages/",
+              "arn:aws:s3:::${var.cluster_name}-backups/*",
+              "arn:aws:s3:::${var.cluster_name}-backups/",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/"
+            ],
+            "Action": [
+                "s3:*"
+            ]
         }
     ]
 }
 EOF
+}
+
+
+# This role is assigned with IRSA to a bunch of things.
+resource "aws_iam_role" "storage-iam-role" {
+  name               = "${var.cluster_name}-storage-iam-role"
+  assume_role_policy = <<POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "allowS3",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "${aws_iam_openid_connect_provider.eks.url}:sub": [
+            "system:serviceaccount:gitlab:gitlab-gitlab-runner"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "AllowAdmins",
+      "Effect": "Allow",
+      "Principal": {
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform",
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+POLICY
+}
+
+resource "aws_iam_role_policy" "storage-iam-role" {
+  name = "${var.cluster_name}-storage-iam-role"
+  role = aws_iam_role.storage-iam-role.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3",
+            "Effect": "Allow",
+            "Resource": [
+              "arn:aws:s3:::${var.cluster_name}-registry/*",
+              "arn:aws:s3:::${var.cluster_name}-registry/",
+              "arn:aws:s3:::${var.cluster_name}-lfs/*",
+              "arn:aws:s3:::${var.cluster_name}-lfs/",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/*",
+              "arn:aws:s3:::${var.cluster_name}-artifacts/",
+              "arn:aws:s3:::${var.cluster_name}-uploads/*",
+              "arn:aws:s3:::${var.cluster_name}-uploads/",
+              "arn:aws:s3:::${var.cluster_name}-packages/*",
+              "arn:aws:s3:::${var.cluster_name}-packages/",
+              "arn:aws:s3:::${var.cluster_name}-backups/*",
+              "arn:aws:s3:::${var.cluster_name}-backups/",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/"
+            ],
+            "Action": [
+                "s3:*"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+locals {
+  buckets = [
+    "${var.cluster_name}-registry",
+    "${var.cluster_name}-lfs",
+    "${var.cluster_name}-artifacts",
+    "${var.cluster_name}-uploads",
+    "${var.cluster_name}-packages",
+    "${var.cluster_name}-backups",
+    "${var.cluster_name}-runner",
+    "${var.cluster_name}-tmpbackups",
+  ]
+}
+
+# s3 buckets used for various components of gitlab
+resource "aws_s3_bucket" "gitlab_bucket" {
+  count  = length(local.buckets)
+  bucket = local.buckets[count.index]
+
+  server_side_encryption_configuration {
+    rule {
+      apply_server_side_encryption_by_default {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
 }
