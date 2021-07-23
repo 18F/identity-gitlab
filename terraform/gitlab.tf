@@ -448,6 +448,7 @@ resource "aws_iam_role_policy" "gitlab-runner" {
             "Effect": "Allow",
             "Resource": "*",
             "Action": [
+                "cloudwatch:PutMetricData",
                 "ecr:GetDownloadUrlForLayer",
                 "ecr:BatchGetImage",
                 "ecr:BatchCheckLayerAvailability",
