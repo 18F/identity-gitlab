@@ -41,6 +41,7 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "packages-bucket"          = "${var.cluster_name}-packages"
     "backups-bucket"           = "${var.cluster_name}-backups"
     "runner-bucket"            = "${var.cluster_name}-runner"
+    "tmpbackups-bucket"        = "${var.cluster_name}-tmpbackups"
   }
 }
 
@@ -478,7 +479,9 @@ resource "aws_iam_role_policy" "gitlab-runner" {
               "arn:aws:s3:::${var.cluster_name}-packages/*",
               "arn:aws:s3:::${var.cluster_name}-packages/",
               "arn:aws:s3:::${var.cluster_name}-backups/*",
-              "arn:aws:s3:::${var.cluster_name}-backups/"
+              "arn:aws:s3:::${var.cluster_name}-backups/",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/"
             ],
             "Action": [
                 "s3:*"
@@ -549,7 +552,9 @@ resource "aws_iam_role_policy" "storage-iam-role" {
               "arn:aws:s3:::${var.cluster_name}-packages/*",
               "arn:aws:s3:::${var.cluster_name}-packages/",
               "arn:aws:s3:::${var.cluster_name}-backups/*",
-              "arn:aws:s3:::${var.cluster_name}-backups/"
+              "arn:aws:s3:::${var.cluster_name}-backups/",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/"
             ],
             "Action": [
                 "s3:*"
@@ -568,6 +573,7 @@ locals {
     "${var.cluster_name}-uploads",
     "${var.cluster_name}-packages",
     "${var.cluster_name}-backups",
+    "${var.cluster_name}-tmpbackups",
     "${var.cluster_name}-runner"
   ]
 }
