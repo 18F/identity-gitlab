@@ -573,8 +573,8 @@ locals {
     "${var.cluster_name}-uploads",
     "${var.cluster_name}-packages",
     "${var.cluster_name}-backups",
+    "${var.cluster_name}-runner",
     "${var.cluster_name}-tmpbackups",
-    "${var.cluster_name}-runner"
   ]
 }
 
