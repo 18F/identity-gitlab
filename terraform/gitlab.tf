@@ -479,7 +479,7 @@ resource "aws_iam_role_policy" "gitlab-runner" {
               "arn:aws:s3:::${var.cluster_name}-packages/*",
               "arn:aws:s3:::${var.cluster_name}-packages/",
               "arn:aws:s3:::${var.cluster_name}-backups/*",
-              "arn:aws:s3:::${var.cluster_name}-backups/".
+              "arn:aws:s3:::${var.cluster_name}-backups/",
               "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
               "arn:aws:s3:::${var.cluster_name}-tmpbackups/"
 
