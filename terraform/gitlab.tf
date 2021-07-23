@@ -56,10 +56,10 @@ data "aws_secretsmanager_secret_version" "redis-pw-gitlab" {
 
 # SSO secrets
 data "aws_secretsmanager_secret_version" "oidc-github-app-id" {
-  secret_id = "${var.cluster_name}-oidc-github-app-id" 
+  secret_id = "${var.cluster_name}-oidc-github-app-id"
 }
 data "aws_secretsmanager_secret_version" "oidc-github-app-secret" {
-  secret_id = "${var.cluster_name}-oidc-github-app-secret" 
+  secret_id = "${var.cluster_name}-oidc-github-app-secret"
 }
 resource "kubernetes_secret" "gitlab-github-auth" {
   depends_on = [kubernetes_namespace.gitlab]
@@ -81,7 +81,7 @@ resource "kubernetes_secret" "gitlab-github-auth" {
         name       = "github"
         app_id     = data.aws_secretsmanager_secret_version.oidc-github-app-id.secret_string
         app_secret = data.aws_secretsmanager_secret_version.oidc-github-app-secret.secret_string
-        args       = {
+        args = {
           scope = "user:email"
         }
       }
@@ -580,7 +580,7 @@ locals {
 
 # s3 buckets used for various components of gitlab
 resource "aws_s3_bucket" "gitlab_bucket" {
-  count = length(local.buckets)
+  count  = length(local.buckets)
   bucket = local.buckets[count.index]
 
   server_side_encryption_configuration {
