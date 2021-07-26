@@ -35,8 +35,6 @@ spec:
     gitlab-runner:
       runners:
         serviceAccountName: gitlab-gitlab-runner
-        env:
-          CLUSTER_NAME: 
       rbac:
         create: true
         resources: ["pods", "pods/exec", "secrets"]
