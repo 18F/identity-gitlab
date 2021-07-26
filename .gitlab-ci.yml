@@ -1,5 +1,7 @@
 write_metrics:
   image: golang:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
     - cd monitoring
     - go run metrics.go --cluster=$CLUSTER_NAME
