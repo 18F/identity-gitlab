@@ -1,0 +1,5 @@
+write_metrics:
+  image: golang:latest
+  script:
+    - cd monitoring
+    - go run metrics.go --cluster=$CLUSTER_NAME
