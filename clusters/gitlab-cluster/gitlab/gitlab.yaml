@@ -41,19 +41,6 @@ spec:
     gitlab-runner:
       runners:
         logLevel: debug
-        # config: |
-        #   [[runners]]
-        #     [runners.kubernetes]
-        #     image = "ubuntu:18.04"
-        #     [runners.cache]
-        #       Type = "s3"
-        #       Path = "gitlab-runner"
-        #       Shared = true
-        #       [runners.cache.s3]
-        #         ServerAddress = s3.amazonaws.com
-        #         BucketName = "gitlabtest-runner"
-        #         BucketLocation = "us-west-2"
-        #         Insecure = false
         serviceAccountName: gitlab-gitlab-runner
         cache:
           s3ServerAddress: s3.amazonaws.com
