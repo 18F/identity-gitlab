@@ -39,6 +39,7 @@ spec:
           create: true
           enabled: true
     gitlab-runner:
+      logLevel: debug
       runners:
         serviceAccountName: gitlab-gitlab-runner
         cache:
