@@ -49,7 +49,7 @@ spec:
               namespace = "gitlab"
               image = "ubuntu:18.04"
               log_level = "debug"
-        logLevel: debug
+        logLevel: "debug"
         serviceAccountName: gitlab-gitlab-runner
         cache:
           s3ServerAddress: s3.amazonaws.com
