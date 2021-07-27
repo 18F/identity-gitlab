@@ -43,6 +43,12 @@ spec:
           enabled: true
     gitlab-runner:
       runners:
+        config: |
+          [[runners]]
+            [runners.kubernetes]
+              namespace = "gitlab"
+              image = "ubuntu:18.04"
+              log_level = "debug"
         logLevel: debug
         serviceAccountName: gitlab-gitlab-runner
         cache:
