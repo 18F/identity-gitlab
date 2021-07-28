@@ -37,7 +37,8 @@ spec:
             extraArgs: "--skip db"
           objectStorage:
             config:
-              secret: gitlab-s3cfg
+              # XXX this is actually not going to work until https://gitlab.com/gitlab-org/charts/gitlab/-/issues/2508 is resolved
+              secret: gitlab-s3cfg 
               key: config
         serviceAccount:
           create: true
@@ -147,6 +148,8 @@ spec:
           secret: ses-smtp
           key: password
       appConfig:
+        externalDiffs:
+          enabled: true
         lfs:
           connection:
             secret: gitlab-storage
@@ -163,7 +166,19 @@ spec:
           connection:
             secret: gitlab-storage
             key: connection
-        backups:
+        externalDiffs:
+          connection:
+            secret: gitlab-storage
+            key: connection
+        terraformState:
+          connection:
+            secret: gitlab-storage
+            key: connection
+        pseudonymizer:
+          connection:
+            secret: gitlab-storage
+            key: connection
+        dependencyProxy:
           connection:
             secret: gitlab-storage
             key: connection
@@ -302,3 +317,19 @@ spec:
       name: terraform-gitlab-info
       valuesKey: runner-bucket
       targetPath: gitlab-runner.runners.cache.s3BucketName
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: externalDiffs-bucket
+      targetPath: global.appConfig.externalDiffs.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: terraformState-bucket
+      targetPath: global.appConfig.terraformState.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: pseudonymizer-bucket
+      targetPath: global.appConfig.pseudonymizer.bucket
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: dependencyProxy-bucket
+      targetPath: global.appConfig.dependencyProxy.bucket
