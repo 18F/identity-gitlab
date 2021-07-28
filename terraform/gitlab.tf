@@ -442,26 +442,22 @@ resource "aws_iam_role" "gitlab-runner" {
       }
     },
     {
-      "Sid": "allowTaskRunnerServiceAccount",
+      "Sid": "AllowAutotf",
       "Effect": "Allow",
       "Principal": {
-        "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
+        "AWS": [
+          "arn:aws:iam::034795980528:role/AutoTerraform"
+        ]
       },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "ForAnyValue:StringEquals": {
-          "${aws_iam_openid_connect_provider.eks.url}:sub": [
-            "system:serviceaccount:gitlab:gitlab-task-runner"
-          ]
-        }
-      }
+      "Action": "sts:AssumeRole"
     },
     {
       "Sid": "AllowAdmins",
       "Effect": "Allow",
       "Principal": {
-          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform",
-          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator"
+        "AWS": [
+          "arn:aws:iam::034795980528:role/FullAdministrator"
+        ]
       },
       "Action": "sts:AssumeRole"
     }
@@ -537,7 +533,7 @@ resource "aws_iam_role" "storage-iam-role" {
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "allowS3",
+      "Sid": "allowrunners",
       "Effect": "Allow",
       "Principal": {
         "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
@@ -546,7 +542,8 @@ resource "aws_iam_role" "storage-iam-role" {
       "Condition": {
         "ForAnyValue:StringEquals": {
           "${aws_iam_openid_connect_provider.eks.url}:sub": [
-            "system:serviceaccount:gitlab:gitlab-gitlab-runner"
+            "system:serviceaccount:gitlab:gitlab-gitlab-runner",
+            "system:serviceaccount:gitlab:gitlab-task-runner"
           ]
         }
       }
@@ -555,8 +552,15 @@ resource "aws_iam_role" "storage-iam-role" {
       "Sid": "AllowAdmins",
       "Effect": "Allow",
       "Principal": {
-          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform",
           "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator"
+      },
+      "Action": "sts:AssumeRole"
+    },
+    {
+      "Sid": "AllowAutotf",
+      "Effect": "Allow",
+      "Principal": {
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform"
       },
       "Action": "sts:AssumeRole"
     }
