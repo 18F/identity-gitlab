@@ -513,7 +513,15 @@ resource "aws_iam_role_policy" "gitlab-runner" {
               "arn:aws:s3:::${var.cluster_name}-backups/*",
               "arn:aws:s3:::${var.cluster_name}-backups/",
               "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
-              "arn:aws:s3:::${var.cluster_name}-tmpbackups/"
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/",
+              "arn:aws:s3:::${var.cluster_name}-externaldiffs/*",
+              "arn:aws:s3:::${var.cluster_name}-externaldiffs/",
+              "arn:aws:s3:::${var.cluster_name}-tfstate/*",
+              "arn:aws:s3:::${var.cluster_name}-tfstate/",
+              "arn:aws:s3:::${var.cluster_name}-pseudonymizer/*",
+              "arn:aws:s3:::${var.cluster_name}-pseudonymizer/",
+              "arn:aws:s3:::${var.cluster_name}-dependencyproxy/*",
+              "arn:aws:s3:::${var.cluster_name}-dependencyproxy/"
             ],
             "Action": [
                 "s3:*"
@@ -594,7 +602,15 @@ resource "aws_iam_role_policy" "storage-iam-role" {
               "arn:aws:s3:::${var.cluster_name}-backups/*",
               "arn:aws:s3:::${var.cluster_name}-backups/",
               "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
-              "arn:aws:s3:::${var.cluster_name}-tmpbackups/"
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups/",
+              "arn:aws:s3:::${var.cluster_name}-externaldiffs/*",
+              "arn:aws:s3:::${var.cluster_name}-externaldiffs/",
+              "arn:aws:s3:::${var.cluster_name}-tfstate/*",
+              "arn:aws:s3:::${var.cluster_name}-tfstate/",
+              "arn:aws:s3:::${var.cluster_name}-pseudonymizer/*",
+              "arn:aws:s3:::${var.cluster_name}-pseudonymizer/",
+              "arn:aws:s3:::${var.cluster_name}-dependencyproxy/*",
+              "arn:aws:s3:::${var.cluster_name}-dependencyproxy/"
             ],
             "Action": [
                 "s3:*"
@@ -615,6 +631,10 @@ locals {
     "${var.cluster_name}-backups",
     "${var.cluster_name}-runner",
     "${var.cluster_name}-tmpbackups",
+    "${var.cluster_name}-externaldiffs",
+    "${var.cluster_name}-tfstate",
+    "${var.cluster_name}-pseudonymizer",
+    "${var.cluster_name}-dependencyproxy",
   ]
 }
 
