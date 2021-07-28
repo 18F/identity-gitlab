@@ -42,6 +42,10 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "backups-bucket"           = "${var.cluster_name}-backups"
     "runner-bucket"            = "${var.cluster_name}-runner"
     "tmpbackups-bucket"        = "${var.cluster_name}-tmpbackups"
+    "externalDiffs-bucket"     = "${var.cluster_name}-externaldiffs"
+    "terraformState-bucket"    = "${var.cluster_name}-tfstate"
+    "pseudonymizer-bucket"     = "${var.cluster_name}-pseudonymizer"
+    "dependencyProxy-bucket"   = "${var.cluster_name}-dependencyproxy"
   }
 }
 
