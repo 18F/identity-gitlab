@@ -61,6 +61,42 @@ fields @timestamp, event.tls.sni
 | sort @timestamp desc
 ```
 
+## Backups
+
+### Gitlab
+
+We have set Gitlab to back itself up using it's cron facility.  You can find
+the documentation on how that works here:  https://docs.gitlab.com/charts/backup-restore/backup.html
+
+UNFORTUNATELY, the gitlab backup tools do not work because s3cmd has an
+issue with IRSA:  https://gitlab.com/gitlab-org/charts/gitlab/-/issues/2508
+Plus, we need to upgrade to gitlab 14.1 to get postgres 13 backup tools.
+
+So until gitlab fixes the s3cmd issue, we are going to rely on the RDS backups
+of the postgres db.  Once s3cmd is in with the IRSA fixes, s3 backups should
+start working too.
+
+#### Restoring Gitlab backups
+
+DO NOT DO THIS LIGHTLY.
+
+Once the s3cmd and 14.1 stuff is resolved, you will be able to
+follow the directions on https://docs.gitlab.com/charts/backup-restore/restore.html
+to restore everything.
+
+Until then, the RDS restore procedure is what you must do:
+* Follow [the RDS "Restoring from a snapshot" directions](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RestoreFromSnapshot.html).
+  Make sure you get the VPC, security group, and db parameter group right!
+  This will result in a new db instance.
+* Import the new database into terraform:
+  ```
+  $ cd identity-gitlab/terraform
+  $ terraform state rm aws_db_instance.gitlab
+  $ terraform import aws_db_instance.gitlab restored-rds-instance
+  ```
+* You will probably want to kick off a deploy run to make sure that everything is
+  proper.
+
 ## Upgrading/Changing stuff
 
 In general, kubernetes yaml is located in a subdir of `identity-gitlab/clusters/gitlab-cluster/`.

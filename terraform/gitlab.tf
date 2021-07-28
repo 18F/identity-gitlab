@@ -436,7 +436,21 @@ resource "aws_iam_role" "gitlab-runner" {
       "Condition": {
         "ForAnyValue:StringEquals": {
           "${aws_iam_openid_connect_provider.eks.url}:sub": [
-            "system:serviceaccount:gitlab:gitlab-gitlab-runner",
+            "system:serviceaccount:gitlab:gitlab-gitlab-runner"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "allowTaskRunnerServiceAccount",
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "${aws_iam_openid_connect_provider.eks.arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "ForAnyValue:StringEquals": {
+          "${aws_iam_openid_connect_provider.eks.url}:sub": [
             "system:serviceaccount:gitlab:gitlab-task-runner"
           ]
         }
