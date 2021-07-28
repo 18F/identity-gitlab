@@ -33,7 +33,7 @@ spec:
         backups:
           cron:
             enabled: true
-            schedule: "*/5 * * * *"
+            schedule: "* * * * *"
           objectStorage:
             config:
               secret: gitlab-storage
