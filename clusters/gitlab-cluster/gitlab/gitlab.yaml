@@ -183,6 +183,10 @@ spec:
       targetPath: clusterName
     - kind: ConfigMap
       name: terraform-gitlab-info
+      valuesKey: cluster_name
+      targetPath: gitlab-runner.runners.env.CLUSTER_NAME
+    - kind: ConfigMap
+      name: terraform-gitlab-info
       valuesKey: domain
       targetPath: global.hosts.domain
     - kind: ConfigMap
