@@ -31,6 +31,9 @@ spec:
       task-runner:
         enabled: true
         backups:
+          cron:
+            enabled: true
+            schedule: "* 2 * * *"
           objectStorage:
             config:
               secret: gitlab-storage
