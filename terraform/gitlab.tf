@@ -127,7 +127,6 @@ resource "kubernetes_secret" "gitlab-s3cfg" {
 [default]
 bucket_location = ${var.region}
 EOF
-    )
   }
 }
 
