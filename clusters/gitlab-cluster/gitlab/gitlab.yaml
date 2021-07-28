@@ -34,10 +34,11 @@ spec:
           cron:
             enabled: true
             schedule: "*/5 * * * *"
+            extraArgs: "--skip db"
           objectStorage:
             config:
-              secret: gitlab-storage
-              key: connection
+              secret: gitlab-s3cfg
+              key: config
         serviceAccount:
           create: true
           enabled: true

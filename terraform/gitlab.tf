@@ -114,6 +114,23 @@ resource "kubernetes_secret" "gitlab-storage" {
   }
 }
 
+# This is used by the backup tools to set up s3cmd
+resource "kubernetes_secret" "gitlab-s3cfg" {
+  depends_on = [kubernetes_namespace.gitlab]
+  metadata {
+    name      = "gitlab-s3cfg"
+    namespace = "gitlab"
+  }
+
+  data = {
+    config = <<EOF
+[default]
+bucket_location = ${var.region}
+EOF
+    )
+  }
+}
+
 # XXX according to
 # https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1,
 # this is a good way to store secrets.  I am suspicious that there
