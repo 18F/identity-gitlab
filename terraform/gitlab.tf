@@ -113,6 +113,7 @@ resource "kubernetes_secret" "gitlab-storage" {
       {
         provider = "AWS"
         region   = var.region
+        use_iam_profile = "true"
       }
     )
   }
@@ -466,74 +467,7 @@ resource "aws_iam_role" "gitlab-runner" {
 POLICY
 }
 
-resource "aws_iam_role_policy" "gitlab-runner" {
-  name = "${var.cluster_name}-gitlab-runner"
-  role = aws_iam_role.gitlab-runner.id
-
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "GitlabRunners",
-            "Effect": "Allow",
-            "Resource": "*",
-            "Action": [
-                "cloudwatch:PutMetricData",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage",
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:PutImage",
-                "ecr:GetAuthorizationToken",
-                "ecr:CreateRepository",
-                "ecr:InitiateLayerUpload",
-                "ecr:UploadLayerPart",
-                "ecr:CompleteLayerUpload",
-                "ecr:DescribeRepositories",
-                "ecr:GetRepositoryPolicy",
-                "ecr:ListImages"
-            ]
-        },
-        {
-            "Sid": "S3",
-            "Effect": "Allow",
-            "Resource": [
-              "arn:aws:s3:::${var.cluster_name}-runner/*",
-              "arn:aws:s3:::${var.cluster_name}-runner/",
-              "arn:aws:s3:::${var.cluster_name}-registry/*",
-              "arn:aws:s3:::${var.cluster_name}-registry/",
-              "arn:aws:s3:::${var.cluster_name}-lfs/*",
-              "arn:aws:s3:::${var.cluster_name}-lfs/",
-              "arn:aws:s3:::${var.cluster_name}-artifacts/*",
-              "arn:aws:s3:::${var.cluster_name}-artifacts/",
-              "arn:aws:s3:::${var.cluster_name}-uploads/*",
-              "arn:aws:s3:::${var.cluster_name}-uploads/",
-              "arn:aws:s3:::${var.cluster_name}-packages/*",
-              "arn:aws:s3:::${var.cluster_name}-packages/",
-              "arn:aws:s3:::${var.cluster_name}-backups/*",
-              "arn:aws:s3:::${var.cluster_name}-backups/",
-              "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
-              "arn:aws:s3:::${var.cluster_name}-tmpbackups/",
-              "arn:aws:s3:::${var.cluster_name}-externaldiffs/*",
-              "arn:aws:s3:::${var.cluster_name}-externaldiffs/",
-              "arn:aws:s3:::${var.cluster_name}-tfstate/*",
-              "arn:aws:s3:::${var.cluster_name}-tfstate/",
-              "arn:aws:s3:::${var.cluster_name}-pseudonymizer/*",
-              "arn:aws:s3:::${var.cluster_name}-pseudonymizer/",
-              "arn:aws:s3:::${var.cluster_name}-dependencyproxy/*",
-              "arn:aws:s3:::${var.cluster_name}-dependencyproxy/"
-            ],
-            "Action": [
-                "s3:*"
-            ]
-        }
-    ]
-}
-EOF
-}
-
-
-# This role is assigned with IRSA to a bunch of things.
+# This role is assigned with IRSA to a bunch of things that need s3 access.
 resource "aws_iam_role" "storage-iam-role" {
   name               = "${var.cluster_name}-storage-iam-role"
   assume_role_policy = <<POLICY
@@ -577,9 +511,50 @@ resource "aws_iam_role" "storage-iam-role" {
 POLICY
 }
 
-resource "aws_iam_role_policy" "storage-iam-role" {
+resource "aws_iam_role_policy_attachment" "runner-storage" {
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${aws_iam_policy.storage-iam-role.name}"
+  role       = aws_iam_role.gitlab-runner.name
+}
+resource "aws_iam_role_policy_attachment" "storage" {
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${aws_iam_policy.storage-iam-role.name}"
+  role       = aws_iam_role.storage-iam-role.name
+}
+
+resource "aws_iam_role_policy" "gitlab-runner" {
+  name = "${var.cluster_name}-gitlab-runner"
+  role = aws_iam_role.gitlab-runner.id
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "GitlabRunners",
+            "Effect": "Allow",
+            "Resource": "*",
+            "Action": [
+                "cloudwatch:PutMetricData",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:PutImage",
+                "ecr:GetAuthorizationToken",
+                "ecr:CreateRepository",
+                "ecr:InitiateLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:CompleteLayerUpload",
+                "ecr:DescribeRepositories",
+                "ecr:GetRepositoryPolicy",
+                "ecr:ListImages"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_policy" "storage-iam-role" {
   name = "${var.cluster_name}-storage-iam-role"
-  role = aws_iam_role.storage-iam-role.id
 
   policy = <<EOF
 {
@@ -589,28 +564,30 @@ resource "aws_iam_role_policy" "storage-iam-role" {
             "Sid": "S3",
             "Effect": "Allow",
             "Resource": [
+              "arn:aws:s3:::${var.cluster_name}-runner/*",
+              "arn:aws:s3:::${var.cluster_name}-runner",
               "arn:aws:s3:::${var.cluster_name}-registry/*",
-              "arn:aws:s3:::${var.cluster_name}-registry/",
+              "arn:aws:s3:::${var.cluster_name}-registry",
               "arn:aws:s3:::${var.cluster_name}-lfs/*",
-              "arn:aws:s3:::${var.cluster_name}-lfs/",
+              "arn:aws:s3:::${var.cluster_name}-lfs",
               "arn:aws:s3:::${var.cluster_name}-artifacts/*",
-              "arn:aws:s3:::${var.cluster_name}-artifacts/",
+              "arn:aws:s3:::${var.cluster_name}-artifacts",
               "arn:aws:s3:::${var.cluster_name}-uploads/*",
-              "arn:aws:s3:::${var.cluster_name}-uploads/",
+              "arn:aws:s3:::${var.cluster_name}-uploads",
               "arn:aws:s3:::${var.cluster_name}-packages/*",
-              "arn:aws:s3:::${var.cluster_name}-packages/",
+              "arn:aws:s3:::${var.cluster_name}-packages",
               "arn:aws:s3:::${var.cluster_name}-backups/*",
-              "arn:aws:s3:::${var.cluster_name}-backups/",
+              "arn:aws:s3:::${var.cluster_name}-backups",
               "arn:aws:s3:::${var.cluster_name}-tmpbackups/*",
-              "arn:aws:s3:::${var.cluster_name}-tmpbackups/",
+              "arn:aws:s3:::${var.cluster_name}-tmpbackups",
               "arn:aws:s3:::${var.cluster_name}-externaldiffs/*",
-              "arn:aws:s3:::${var.cluster_name}-externaldiffs/",
+              "arn:aws:s3:::${var.cluster_name}-externaldiffs",
               "arn:aws:s3:::${var.cluster_name}-tfstate/*",
-              "arn:aws:s3:::${var.cluster_name}-tfstate/",
+              "arn:aws:s3:::${var.cluster_name}-tfstate",
               "arn:aws:s3:::${var.cluster_name}-pseudonymizer/*",
-              "arn:aws:s3:::${var.cluster_name}-pseudonymizer/",
+              "arn:aws:s3:::${var.cluster_name}-pseudonymizer",
               "arn:aws:s3:::${var.cluster_name}-dependencyproxy/*",
-              "arn:aws:s3:::${var.cluster_name}-dependencyproxy/"
+              "arn:aws:s3:::${var.cluster_name}-dependencyproxy"
             ],
             "Action": [
                 "s3:*"
