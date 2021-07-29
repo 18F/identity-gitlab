@@ -56,6 +56,13 @@ spec:
         cache:
           s3ServerAddress: s3.amazonaws.com
           secretName: gitlab-storage
+        resources:
+          limits:
+            memory: 4096Mi
+            cpu: 2
+          requests:
+            memory: 2048Mi
+            cpu: 1
       rbac:
         create: true
         resources: ["pods", "pods/exec", "secrets"]
