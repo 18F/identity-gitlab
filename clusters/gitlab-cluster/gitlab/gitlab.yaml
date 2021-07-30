@@ -33,7 +33,7 @@ spec:
         backups:
           cron:
             enabled: true
-            schedule: "*/5 * * * *"
+            schedule: "* 2 * * *"
             extraArgs: "--skip db"
           objectStorage:
             config:
