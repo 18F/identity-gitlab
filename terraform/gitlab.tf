@@ -447,7 +447,7 @@ resource "aws_iam_role" "gitlab-runner" {
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          "arn:aws:iam::034795980528:role/AutoTerraform"
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform"
         ]
       },
       "Action": "sts:AssumeRole"
@@ -457,7 +457,7 @@ resource "aws_iam_role" "gitlab-runner" {
       "Effect": "Allow",
       "Principal": {
         "AWS": [
-          "arn:aws:iam::034795980528:role/FullAdministrator"
+          "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/FullAdministrator"
         ]
       },
       "Action": "sts:AssumeRole"
