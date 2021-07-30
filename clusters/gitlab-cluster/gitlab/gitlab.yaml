@@ -65,7 +65,7 @@ spec:
             cpu: 1
       rbac:
         create: true
-        resources: ["pods", "pods/exec", "secrets"]
+        resources: ["pods", "pods/exec", "secrets", "configmaps"]
         verbs: ["get", "list", "watch", "create", "patch", "delete"]
     nginx-ingress:
       controller:
