@@ -20,7 +20,7 @@ spec:
   chart:
     spec:
       chart: gitlab
-      version: "4.11.4"
+      version: "4.12.8"
       sourceRef:
         kind: HelmRepository
         name: gitlab
@@ -34,7 +34,6 @@ spec:
           cron:
             enabled: true
             schedule: "* 2 * * *"
-            extraArgs: "--skip db"
           objectStorage:
             config:
               # XXX this is actually not going to work until https://gitlab.com/gitlab-org/charts/gitlab/-/issues/2508 is resolved

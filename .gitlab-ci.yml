@@ -5,3 +5,15 @@ write_metrics:
   script:
     - cd monitoring
     - go run metrics.go --cluster=$CLUSTER_NAME
+
+sync_from_github:
+  image: alpine/git:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - cd .git
+    - git config --bool core.bare true
+    - git remote add --mirror=fetch github https://github.com/18F/identity-gitlab.git
+    - git remote add --mirror=push gitlab https://identity-servers:"$gitlab_identity_servers_access_key"@gitlab-"$CLUSTER_NAME".gitlab.identitysandbox.gov/lg/identity-gitlab.git
+    - git fetch github --prune --prune-tags
+    - git push gitlab --prune
