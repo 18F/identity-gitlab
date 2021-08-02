@@ -50,7 +50,7 @@ spec:
           secretName: gitlab-storage
       rbac:
         create: true
-        resources: ["pods", "pods/exec", "secrets"]
+        resources: ["pods", "pods/exec", "secrets", "configmaps", "pods/attach"]
         verbs: ["get", "list", "watch", "create", "patch", "delete"]
     nginx-ingress:
       controller:
