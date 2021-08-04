@@ -138,7 +138,7 @@ spec:
           servicePort: 9000
           https: false
       ingress:
-        enabled: false
+        enabled: true
         configureCertmanager: false
         tls:
           enabled: false
