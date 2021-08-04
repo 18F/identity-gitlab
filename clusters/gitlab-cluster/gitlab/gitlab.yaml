@@ -32,6 +32,10 @@ spec:
         serviceAccount:
           create: true
           enabled: true
+      webservice:
+        serviceAccount:
+          create: true
+          enabled: true
       task-runner:
         enabled: true
         backups:

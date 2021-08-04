@@ -485,7 +485,9 @@ resource "aws_iam_role" "storage-iam-role" {
         "ForAnyValue:StringEquals": {
           "${aws_iam_openid_connect_provider.eks.url}:sub": [
             "system:serviceaccount:gitlab:gitlab-gitlab-runner",
-            "system:serviceaccount:gitlab:gitlab-task-runner"
+            "system:serviceaccount:gitlab:gitlab-task-runner",
+            "system:serviceaccount:gitlab:gitlab-sidekiq",
+            "system:serviceaccount:gitlab:gitlab-webservice"
           ]
         }
       }
