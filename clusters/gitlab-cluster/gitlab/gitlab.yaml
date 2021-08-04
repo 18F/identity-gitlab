@@ -282,13 +282,11 @@ spec:
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
-      # targetPath: gitlab.webservice.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
-      targetPath: gitlab.webservice.annotations.eks\.amazonaws\.com/role-arn
+      targetPath: gitlab.webservice.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
-      # targetPath: gitlab.sidekiq.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
-      targetPath: gitlab.sidekiq.annotations.eks\.amazonaws\.com/role-arn
+      targetPath: gitlab.sidekiq.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
