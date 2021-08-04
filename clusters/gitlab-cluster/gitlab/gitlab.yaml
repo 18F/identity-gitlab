@@ -20,7 +20,7 @@ spec:
   chart:
     spec:
       chart: gitlab
-      version: "4.12.8"
+      version: "5.0.6"
       sourceRef:
         kind: HelmRepository
         name: gitlab
