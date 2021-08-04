@@ -28,6 +28,10 @@ spec:
       interval: 1m
   values:
     gitlab:
+      sidekiq:
+        serviceAccount:
+          create: true
+          enabled: true
       task-runner:
         enabled: true
         backups:
