@@ -20,7 +20,7 @@ spec:
   chart:
     spec:
       chart: gitlab
-      version: "4.11.4"
+      version: "4.12.8"
       sourceRef:
         kind: HelmRepository
         name: gitlab
@@ -28,6 +28,14 @@ spec:
       interval: 1m
   values:
     gitlab:
+      sidekiq:
+        serviceAccount:
+          create: true
+          enabled: true
+      webservice:
+        serviceAccount:
+          create: true
+          enabled: true
       task-runner:
         enabled: true
         backups:
@@ -50,7 +58,7 @@ spec:
           secretName: gitlab-storage
       rbac:
         create: true
-        resources: ["pods", "pods/exec", "secrets"]
+        resources: ["pods", "pods/exec", "secrets", "configmaps", "pods/attach"]
         verbs: ["get", "list", "watch", "create", "patch", "delete"]
     nginx-ingress:
       controller:
@@ -263,6 +271,10 @@ spec:
       targetPath: global.smtp.user_name
     - kind: ConfigMap
       name: terraform-gitlab-info
+      valuesKey: storage-iam-role
+      targetPath: global.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
       valuesKey: runner-iam-role
       targetPath: gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
@@ -272,7 +284,15 @@ spec:
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
+      targetPath: gitlab.webservice.annotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: storage-iam-role
       targetPath: gitlab.sidekiq.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: storage-iam-role
+      targetPath: gitlab.sidekiq.annotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
       name: terraform-gitlab-info
       valuesKey: storage-iam-role
