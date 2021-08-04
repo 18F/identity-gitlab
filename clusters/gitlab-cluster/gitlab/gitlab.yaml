@@ -263,6 +263,10 @@ spec:
       targetPath: global.smtp.user_name
     - kind: ConfigMap
       name: terraform-gitlab-info
+      valuesKey: storage-iam-role
+      targetPath: global.serviceAccount.annotations.eks\.amazonaws\.com/role-arn
+    - kind: ConfigMap
+      name: terraform-gitlab-info
       valuesKey: runner-iam-role
       targetPath: gitlab-runner.rbac.serviceAccountAnnotations.eks\.amazonaws\.com/role-arn
     - kind: ConfigMap
