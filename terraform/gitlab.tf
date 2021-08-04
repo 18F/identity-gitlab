@@ -408,16 +408,17 @@ locals {
 }
 
 # VPC endpoint service so that we can set up VPC endpoints that go to this
-resource "aws_vpc_endpoint_service" "gitlab" {
-  count                      = var.bootstrap ? 0 : 1
-  acceptance_required        = false
-  allowed_principals         = local.principals
-  network_load_balancer_arns = [data.aws_lb.gitlab.0.arn]
+# XXX Temporarily disabled, as it may interfere with cluster teardown.
+# resource "aws_vpc_endpoint_service" "gitlab" {
+#   count                      = var.bootstrap ? 0 : 1
+#   acceptance_required        = false
+#   allowed_principals         = local.principals
+#   network_load_balancer_arns = [data.aws_lb.gitlab.0.arn]
 
-  tags = {
-    Name = "gitlab-${var.cluster_name}.${var.domain}"
-  }
-}
+#   tags = {
+#     Name = "gitlab-${var.cluster_name}.${var.domain}"
+#   }
+# }
 
 # This role is assigned with IRSA to the gitlab runner.
 # You can attach policies to this to give the runner MOAR POWAH!
