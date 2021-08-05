@@ -7,8 +7,8 @@ import (
 	"net"
 	"os"
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
@@ -166,7 +166,7 @@ func TestGitlabRunnerRole(t *testing.T) {
 
 			if v.Name == "AWS_ROLE_ARN" {
 				foundRole = true
-				assert.Regexp(t, "^arn:aws:iam::.*:role/gitlabtest-gitlab-runner$", v.Value)
+				assert.Regexp(t, "^arn:aws:iam::.*:role/.*-gitlab-runner$", v.Value)
 			}
 		}
 		assert.True(t, foundRole)
@@ -188,7 +188,7 @@ func TestGitlabRunnerRoleECR(t *testing.T) {
 		for _, v := range pod.Spec.Containers[0].Env {
 			if v.Name == "AWS_ROLE_ARN" {
 				foundRole = v.Value
-				assert.Regexp(t, "^arn:aws:iam::.*:role/gitlabtest-gitlab-runner$", v.Value)
+				assert.Regexp(t, "^arn:aws:iam::.*:role/.*-gitlab-runner$", v.Value)
 			}
 		}
 	}
@@ -293,7 +293,7 @@ func TestTargetGroup(t *testing.T) {
 	re := regexp.MustCompile(`^k8s-gitlab-gitlabng-[^-]+`)
 	name := re.FindString(hostname)
 	assert.NotEmpty(t, name)
-	
+
 	// Create an ELB client
 	sess, err := aws.NewAuthenticatedSession(region)
 	assert.NoError(t, err)

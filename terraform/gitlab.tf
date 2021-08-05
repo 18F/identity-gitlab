@@ -632,3 +632,94 @@ resource "aws_s3_bucket" "gitlab_bucket" {
     }
   }
 }
+
+locals {
+  ownertag = "kubernetes.io/cluster/${var.cluster_name}"
+}
+
+resource "aws_dlm_lifecycle_policy" "pvbackups" {
+  description        = "${var.cluster_name} pv backups policy"
+  execution_role_arn = aws_iam_role.pvbackups.arn
+  state              = "ENABLED"
+
+  policy_details {
+    resource_types = ["VOLUME"]
+
+    schedule {
+      name = "2 years of daily snapshots"
+
+      create_rule {
+        interval      = 24
+        interval_unit = "HOURS"
+        times         = ["23:45"]
+      }
+
+      retain_rule {
+        count = 104
+      }
+
+      tags_to_add = {
+        SnapshotCreator = "DLM"
+        cluster_name = var.cluster_name
+      }
+
+      copy_tags = true
+    }
+
+    target_tags = {
+      local.ownertag = "owned"
+    }
+  }
+}
+
+resource "aws_iam_role" "pvbackups" {
+  name = "${var.cluster_name}-backups"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "dlm.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "pvbackups" {
+  name = "${var.cluster_name}-backups"
+  role = aws_iam_role.pvbackups.id
+
+  policy = <<EOF
+{
+   "Version": "2012-10-17",
+   "Statement": [
+      {
+         "Effect": "Allow",
+         "Action": [
+            "ec2:CreateSnapshot",
+            "ec2:CreateSnapshots",
+            "ec2:DeleteSnapshot",
+            "ec2:DescribeInstances",
+            "ec2:DescribeVolumes",
+            "ec2:DescribeSnapshots"
+         ],
+         "Resource": "*"
+      },
+      {
+         "Effect": "Allow",
+         "Action": [
+            "ec2:CreateTags"
+         ],
+         "Resource": "arn:aws:ec2:*::snapshot/*"
+      }
+   ]
+}
+EOF
+}
