@@ -24,7 +24,8 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "redishost"                = aws_elasticache_replication_group.gitlab.primary_endpoint_address
     "redisport"                = var.redis_port
     "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
-    "gitlab_name"              = "gitlab.teleport-${var.cluster_name}.${var.domain}"
+    # gitlab_name needs to be set to this so that the runner can find the internal lb name.
+    "gitlab_name"              = "gitlab-${var.cluster_name}.${var.domain}"
     "fullhostname"             = "gitlab-${var.cluster_name}.${var.domain}"
     "ci_server_url"            = "https://gitlab-${var.cluster_name}.${var.domain}"
     "cert-arn"                 = aws_acm_certificate.gitlab.arn
