@@ -25,28 +25,28 @@ resource "kubernetes_config_map" "terraform-gitlab-info" {
     "redisport"                = var.redis_port
     "ingress-security-groups"  = aws_security_group.gitlab-ingress.id
     # gitlab_name needs to be set to this so that the runner can find the internal lb name.
-    "gitlab_name"              = "gitlab-${var.cluster_name}.${var.domain}"
-    "fullhostname"             = "gitlab-${var.cluster_name}.${var.domain}"
-    "ci_server_url"            = "https://gitlab-${var.cluster_name}.${var.domain}"
-    "cert-arn"                 = aws_acm_certificate.gitlab.arn
-    "email-from"               = "gitlab@${var.cluster_name}.${var.domain}"
-    "smtp-endpoint"            = "email-smtp.${var.region}.amazonaws.com"
-    "email-domain"             = "${var.cluster_name}.${var.domain}"
-    "smtp-username"            = aws_iam_access_key.gitlab-ses.id
-    "runner-iam-role"          = aws_iam_role.gitlab-runner.arn
-    "storage-iam-role"         = aws_iam_role.storage-iam-role.arn
-    "registry-bucket"          = "${var.cluster_name}-registry"
-    "lfs-bucket"               = "${var.cluster_name}-lfs"
-    "artifacts-bucket"         = "${var.cluster_name}-artifacts"
-    "uploads-bucket"           = "${var.cluster_name}-uploads"
-    "packages-bucket"          = "${var.cluster_name}-packages"
-    "backups-bucket"           = "${var.cluster_name}-backups"
-    "runner-bucket"            = "${var.cluster_name}-runner"
-    "tmpbackups-bucket"        = "${var.cluster_name}-tmpbackups"
-    "externalDiffs-bucket"     = "${var.cluster_name}-externaldiffs"
-    "terraformState-bucket"    = "${var.cluster_name}-tfstate"
-    "pseudonymizer-bucket"     = "${var.cluster_name}-pseudonymizer"
-    "dependencyProxy-bucket"   = "${var.cluster_name}-dependencyproxy"
+    "gitlab_name"            = "gitlab-${var.cluster_name}.${var.domain}"
+    "fullhostname"           = "gitlab-${var.cluster_name}.${var.domain}"
+    "ci_server_url"          = "https://gitlab-${var.cluster_name}.${var.domain}"
+    "cert-arn"               = aws_acm_certificate.gitlab.arn
+    "email-from"             = "gitlab@${var.cluster_name}.${var.domain}"
+    "smtp-endpoint"          = "email-smtp.${var.region}.amazonaws.com"
+    "email-domain"           = "${var.cluster_name}.${var.domain}"
+    "smtp-username"          = aws_iam_access_key.gitlab-ses.id
+    "runner-iam-role"        = aws_iam_role.gitlab-runner.arn
+    "storage-iam-role"       = aws_iam_role.storage-iam-role.arn
+    "registry-bucket"        = "${var.cluster_name}-registry"
+    "lfs-bucket"             = "${var.cluster_name}-lfs"
+    "artifacts-bucket"       = "${var.cluster_name}-artifacts"
+    "uploads-bucket"         = "${var.cluster_name}-uploads"
+    "packages-bucket"        = "${var.cluster_name}-packages"
+    "backups-bucket"         = "${var.cluster_name}-backups"
+    "runner-bucket"          = "${var.cluster_name}-runner"
+    "tmpbackups-bucket"      = "${var.cluster_name}-tmpbackups"
+    "externalDiffs-bucket"   = "${var.cluster_name}-externaldiffs"
+    "terraformState-bucket"  = "${var.cluster_name}-tfstate"
+    "pseudonymizer-bucket"   = "${var.cluster_name}-pseudonymizer"
+    "dependencyProxy-bucket" = "${var.cluster_name}-dependencyproxy"
   }
 }
 
@@ -112,8 +112,8 @@ resource "kubernetes_secret" "gitlab-storage" {
   data = {
     connection = jsonencode(
       {
-        provider = "AWS"
-        region   = var.region
+        provider        = "AWS"
+        region          = var.region
         use_iam_profile = "true"
       }
     )
@@ -660,14 +660,14 @@ resource "aws_dlm_lifecycle_policy" "pvbackups" {
 
       tags_to_add = {
         SnapshotCreator = "DLM"
-        cluster_name = var.cluster_name
+        cluster_name    = var.cluster_name
       }
 
       copy_tags = true
     }
 
     target_tags = {
-      local.ownertag = "owned"
+      (local.ownertag) = "owned"
     }
   }
 }
