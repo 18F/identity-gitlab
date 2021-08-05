@@ -188,6 +188,8 @@ spec:
           blockAutoCreatedUsers: false
           providers:
             - secret: gitlab-github-auth
+        defaultProjectsFeatures:
+          containerRegistry: false
     postgresql:
       install: false
     redis:
