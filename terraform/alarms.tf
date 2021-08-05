@@ -11,7 +11,7 @@ resource "aws_cloudwatch_metric_alarm" "runner_alarm" {
   alarm_description         = "This Alarm is executed if no runner has successfully completed in the last 15m."
   treat_missing_data        = "breaching"
   insufficient_data_actions = []
-  alarm_actions             = [
+  alarm_actions = [
     "arn:aws:sns:${var.region}:${data.aws_caller_identity.current.account_id}:slack-otherevents",
   ]
 }
