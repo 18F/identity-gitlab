@@ -5,21 +5,22 @@
 set -e
 
 if [ -z "$1" ]; then
-     echo "usage:  $0 <cluster_name>"
-     echo "example: ./deploy.sh gitlab-dev"
-     echo "example: ./deploy.sh gitlab-dev"
-     exit 1
+    echo "usage:  $0 <cluster_name>"
+    echo "example: ./deploy.sh gitlab-dev"
+    echo "example: ./deploy.sh gitlab-dev"
+    exit 1
 else
-     export TF_VAR_cluster_name="$1"
+    export TF_VAR_cluster_name="$1"
+    shift
 fi
 
 checkbinary() {
-     if which "$1" >/dev/null ; then
-          return 0
-     else
-          echo no "$1" found: exiting
-          exit 1
-     fi
+    if which "$1" >/dev/null ; then
+        return 0
+    else
+        echo no "$1" found: exiting
+        exit 1
+    fi
 }
 
 # This creates a secret in a way that it's not stored in tf state
@@ -27,11 +28,11 @@ checkbinary() {
 # make sure it's deleted with --force-delete-without-recovery so
 # that things aren't confused.
 createsecret() {
-  if aws secretsmanager describe-secret --secret-id "$1" >/dev/null 2>&1 ; then
-    echo "$1" secret already set up
-  else
-    aws secretsmanager create-secret --name "$1" --secret-string "$(aws secretsmanager get-random-password --exclude-punctuation --require-each-included-type | jq -r .RandomPassword)"
-  fi
+    if aws secretsmanager describe-secret --secret-id "$1" >/dev/null 2>&1 ; then
+        echo "$1" secret already set up
+    else
+        aws secretsmanager create-secret --name "$1" --secret-string "$(aws secretsmanager get-random-password --exclude-punctuation --require-each-included-type | jq -r .RandomPassword)"
+    fi
 }
 
 REQUIREDBINARIES="
@@ -40,7 +41,7 @@ REQUIREDBINARIES="
      jq
 "
 for i in ${REQUIREDBINARIES} ; do
-     checkbinary "$i"
+    checkbinary "$i"
 done
 
 
@@ -62,11 +63,15 @@ createsecret "${TF_VAR_cluster_name}-teleport-join-token"
 # do terraform!
 pushd "$SCRIPT_BASE/terraform"
 terraform init -backend-config="bucket=$BUCKET" \
-      -backend-config="key=tf-state/$TF_VAR_cluster_name" \
-      -backend-config="dynamodb_table=eks_terraform_locks" \
-      -backend-config="region=$REGION" \
-      -upgrade
-terraform apply
+          -backend-config="key=tf-state/$TF_VAR_cluster_name" \
+          -backend-config="dynamodb_table=eks_terraform_locks" \
+          -backend-config="region=$REGION" \
+          -upgrade
+if [ -z "$1" ]; then
+    terraform apply
+else
+    terraform "$@"
+fi
 popd
 
 # This updates the kubeconfig so that we can access the cluster using kubectl
