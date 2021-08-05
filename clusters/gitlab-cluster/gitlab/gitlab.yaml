@@ -114,7 +114,7 @@ spec:
     certmanager:
       install: false
     registry:
-      # enabled: false
+      enabled: false
     global:
       minio:
         enabled: false
