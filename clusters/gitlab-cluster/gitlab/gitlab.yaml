@@ -162,8 +162,6 @@ spec:
           secret: ses-smtp
           key: password
       appConfig:
-        externalDiffs:
-          enabled: true
         lfs:
           connection:
             secret: gitlab-storage
@@ -181,6 +179,7 @@ spec:
             secret: gitlab-storage
             key: connection
         externalDiffs:
+          enabled: true
           connection:
             secret: gitlab-storage
             key: connection
