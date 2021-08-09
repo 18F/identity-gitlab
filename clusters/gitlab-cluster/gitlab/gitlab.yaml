@@ -29,15 +29,21 @@ spec:
   values:
     gitlab:
       sidekiq:
+        registry:
+          enabled: false
         serviceAccount:
           create: true
           enabled: true
       webservice:
+        registry:
+          enabled: false
         serviceAccount:
           create: true
           enabled: true
       task-runner:
         enabled: true
+        registry:
+          enabled: false
         backups:
           cron:
             enabled: true
@@ -201,6 +207,8 @@ spec:
           blockAutoCreatedUsers: false
           providers:
             - secret: gitlab-github-auth
+        defaultProjectsFeatures:
+          containerRegistry: false
     postgresql:
       install: false
     redis:

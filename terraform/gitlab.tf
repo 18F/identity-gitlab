@@ -654,7 +654,7 @@ resource "aws_dlm_lifecycle_policy" "pvbackups" {
       }
 
       retain_rule {
-        count = 104
+        count = 730
       }
 
       tags_to_add = {
