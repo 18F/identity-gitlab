@@ -94,8 +94,12 @@ Until then, the RDS restore procedure is what you must do:
   $ terraform state rm aws_db_instance.gitlab
   $ terraform import aws_db_instance.gitlab restored-rds-instance
   ```
-* You will probably want to kick off a deploy run to make sure that everything is
+* You will need to kick off a deploy run to make sure that everything is
   proper.
+* If you need to restore the gitaly Persistent Volume from backups as well, there
+  are EBS snapshots created once a day for it.  You can use the
+  [Persistent Volume Replacement Procedure](https://docs.gitlab.com/charts/advanced/persistent-volumes/#switching-to-a-different-volume)
+  to restore from one of those snapshots.
 
 ## Upgrading/Changing stuff
 
