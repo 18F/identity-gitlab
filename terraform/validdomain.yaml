@@ -28,6 +28,7 @@ domainAllowList:
 - registry.yarnpkg.com
 # Downloading image/containers
 - gcr.io
+- mirror.gcr.io
 - index.docker.io
 # Downloading Node/Yarn binaries
 - dl.yarnpkg.com
