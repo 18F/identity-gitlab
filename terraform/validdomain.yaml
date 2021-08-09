@@ -6,7 +6,6 @@ domainAllowList:
 - k8s.gcr.io
 - quay.io
 - public.ecr.aws
-- mirror.gcr.io
 - ghcr.io
 - registry-1.docker.io
 - .cloudfront.net
