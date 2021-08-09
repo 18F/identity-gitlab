@@ -35,3 +35,4 @@ sync_images_to_ecr:
     - # also:  the REGION, CI_REGISTRY_PASSWORD, CI_REGISTRY, CI_REGISTRY_USER environment variables must be set
     - ./sync-repo.sh alpine/git latest
     - ./sync-repo.sh library/golang latest
+    - ./sync-repo.sh library/alpine latest
