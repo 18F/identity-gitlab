@@ -42,3 +42,5 @@ domainAllowList:
 - dev-identity-saml-sinatra.app.cloud.gov
 - clients2.google.com
 - imap.gmail.com
+# so we can install packages for alpine
+- dl-cdn.alpinelinux.org
