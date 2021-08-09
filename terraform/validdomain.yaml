@@ -6,6 +6,7 @@ domainAllowList:
 - k8s.gcr.io
 - quay.io
 - public.ecr.aws
+- mirror.gcr.io
 - ghcr.io
 - registry-1.docker.io
 - .cloudfront.net
@@ -28,6 +29,7 @@ domainAllowList:
 - registry.yarnpkg.com
 # Downloading image/containers
 - gcr.io
+- mirror.gcr.io
 - index.docker.io
 # Downloading Node/Yarn binaries
 - dl.yarnpkg.com
@@ -41,3 +43,5 @@ domainAllowList:
 - dev-identity-saml-sinatra.app.cloud.gov
 - clients2.google.com
 - imap.gmail.com
+# so we can install packages for alpine
+- dl-cdn.alpinelinux.org

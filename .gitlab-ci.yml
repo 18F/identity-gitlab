@@ -1,5 +1,5 @@
 write_metrics:
-  image: golang:latest
+  image: mirror.gcr.io/library/golang:latest
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
@@ -7,7 +7,7 @@ write_metrics:
     - go run metrics.go --cluster=$CLUSTER_NAME
 
 sync_from_github:
-  image: alpine/git:latest
+  image: mirror.gcr.io/alpine/git:latest
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
@@ -17,3 +17,22 @@ sync_from_github:
     - git remote add --mirror=push gitlab https://identity-servers:"$gitlab_identity_servers_access_key"@gitlab-"$CLUSTER_NAME".gitlab.identitysandbox.gov/lg/identity-gitlab.git
     - git fetch github --prune --prune-tags
     - git push gitlab --prune
+
+sync_images_to_ecr:
+  image: mirror.gcr.io/library/alpine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  script:
+    - apk add aws-cli
+    - apk add skopeo
+    - aws ecr get-login-password >/dev/null # This is to make sure we bail if we can't actually do this job
+    - export CI_REGISTRY_PASSWORD="$(aws ecr get-login-password)"
+    - export CI_REGISTRY_USER=AWS
+    - export CI_REGISTRY="$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$REGION.amazonaws.com"
+    - # usage:   ./sync-repo.sh <repo> <tag> [<registry>]
+    - # example: ./sync-repo.sh alpine/git latest
+    - # example: ./sync-repo.sh amazonlinux/amazonlinux latest public.ecr.aws
+    - # also:  the REGION, CI_REGISTRY_PASSWORD, CI_REGISTRY, CI_REGISTRY_USER environment variables must be set
+    - ./sync-repo.sh alpine/git latest
+    - ./sync-repo.sh library/golang latest
+    - ./sync-repo.sh library/alpine latest
