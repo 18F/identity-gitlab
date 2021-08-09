@@ -36,5 +36,8 @@ domainAllowList:
 - security.debian.org
 # Smoke tests
 - idp.dev.identitysandbox.gov
+- static.idp.dev.identitysandbox.gov
 - dev-identity-oidc-sinatra.app.cloud.gov
 - dev-identity-saml-sinatra.app.cloud.gov
+- clients2.google.com
+- imap.gmail.com
