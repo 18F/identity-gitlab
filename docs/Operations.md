@@ -360,6 +360,33 @@ kubectl delete helmrelease gitlab -n gitlab
 flux reconcile source git flux-system
 ```
 
+### Mirroring images into ECR
+
+If we want to, we can mirror images into our local registry, where they can be scanned
+and perhaps have additional security things layered on top.
+
+The way you do this is:
+* Add a line to the `sync_images_to_ecr` job in `.gitlab-ci.yml` to sync it over.
+  The arguments are documented in the `sync-repo.sh` script.  You can also run
+  the command by hand if you like.
+* Use a [Kustomize image transformer](https://github.com/kubernetes-sigs/kustomize/blob/master/examples/transformerconfigs/README.md#images-transformer)
+  or [Helmrelease Kustomize post-renderer](https://fluxcd.io/docs/components/helm/helmreleases/#post-renderers)
+  to transform the image that you just synced over in the yaml to the new location.
+  Examples can be seen in `identity-gitlab/clusters/gitlab-cluster/logging/kustomization.yaml`
+  and `identity-gitlab/clusters/gitlab-cluster/gitlab/gitlab.yaml`.  Just search
+  for `images:`.
+
+Note:  If you are forking this, you will need to change the registry in the
+transformers.  Unfortunately, kustomize doesn't let you interpolate in
+variables or pull from configmaps or do anything dynamic at all, so it
+must be hardcoded in, or to use the term of art: "declarative".
+
+Also, it might be a better idea to use `sync` instead of `copy` in the
+`sync-repo.sh` script.  This way, every cluster will "fix" the repo if somebody
+alters it, but with `sync`, it will be more efficient because it won't overrwrite
+a repo that already exists.  More use will determine whether we should switch or
+not.
+
 ### How to run a pod in the cluster
 
 Sometimes you want to run a shell in the cluster so you can test stuff out.
