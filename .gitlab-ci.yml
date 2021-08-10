@@ -36,3 +36,5 @@ sync_images_to_ecr:
     - ./sync-repo.sh alpine/git latest
     - ./sync-repo.sh library/golang latest
     - ./sync-repo.sh library/alpine latest
+    - ./sync-repo.sh gitlab-org/build/cng/gitaly v14.1.2 registry.gitlab.com
+    - ./sync-repo.sh amazon/aws-for-fluent-bit 2.10.0 registry.hub.docker.com
