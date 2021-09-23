@@ -10,15 +10,16 @@ kind: Deployment
 metadata:
   name: identity-fake-server
   namespace: identity-fake-server
+  labels:
+    k8s-app: identity-fake-server
 spec:
   selector:
     matchLabels:
-      app: identity-fake-server
+      k8s-app: identity-fake-server
   template:
     metadata:
       labels:
-        app: identity-fake-server
-        service: identity-fake-server
+        k8s-app: identity-fake-server
     spec:
       containers:
       - name: identity-fake-server
@@ -38,6 +39,7 @@ spec:
   ports:
     - port: 5555
       targetPort: 5555
+      protocol: TCP
   selector:
     k8s-app: identity-fake-server
 
