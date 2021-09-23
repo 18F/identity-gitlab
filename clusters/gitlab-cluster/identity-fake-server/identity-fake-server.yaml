@@ -5,3 +5,61 @@ metadata:
   name: identity-fake-server
 
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identity-fake-server
+  namespace: identity-fake-server
+spec:
+  selector:
+    matchLabels:
+      app: identity-fake-server
+  template:
+    metadata:
+      labels:
+        app: identity-fake-server
+        service: identity-fake-server
+    spec:
+      containers:
+      - name: identity-fake-server
+        image: logindotgov/identity-fake-server:latest
+        ports:
+        - containerPort: 5555
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  labels:
+    k8s-app: identity-fake-server
+  name: identity-fake-server
+  namespace: identity-fake-server
+spec:
+  ports:
+    - port: 5555
+      targetPort: 5555
+  selector:
+    k8s-app: identity-fake-server
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: identity-fake-server
+  namespace: identity-fake-server
+  annotations:
+    # use the shared ingress-nginx
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+  - host: identity-fake-server.grevi.ch
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: identity-fake-server
+            port:
+              number: 5555
+---
