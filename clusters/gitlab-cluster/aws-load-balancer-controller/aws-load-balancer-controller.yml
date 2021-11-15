@@ -34,3 +34,11 @@ spec:
       name: terraform-info
       valuesKey: cluster_name
       targetPath: clusterName
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: region
+      targetPath: aws-region
+    - kind: ConfigMap
+      name: terraform-gitlab-info
+      valuesKey: aws-vpc-id
+      targetPath: aws-vpc-id
