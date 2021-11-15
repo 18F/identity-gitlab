@@ -261,6 +261,7 @@ resource "kubernetes_config_map" "terraform-info" {
   data = {
     "cluster_name"      = var.cluster_name,
     "region"            = var.region,
+    "aws-vpc-id"        = aws_vpc.eks.id,
     "autoscalerRoleArn" = aws_iam_role.cluster-autoscaler.arn
   }
 }
