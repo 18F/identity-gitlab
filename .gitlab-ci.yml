@@ -6,17 +6,10 @@ write_metrics:
     - cd monitoring
     - go run metrics.go --cluster=$CLUSTER_NAME
 
-sync_from_github:
-  image: mirror.gcr.io/alpine/git:latest
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-  script:
-    - cd .git
-    - git config --bool core.bare true
-    - git remote add --mirror=fetch github https://github.com/18F/identity-gitlab.git
-    - git remote add --mirror=push gitlab https://identity-servers:"$gitlab_identity_servers_access_key"@gitlab-"$CLUSTER_NAME".gitlab.identitysandbox.gov/lg/identity-gitlab.git
-    - git fetch github --prune --prune-tags
-    - git push gitlab --prune
+include:
+  project: 'lg/identity-gitlab'
+  ref: 'main'
+  file: '.gitlab-ci-sync.yml'
 
 sync_images_to_ecr:
   image: mirror.gcr.io/library/alpine
@@ -36,3 +29,5 @@ sync_images_to_ecr:
     - ./sync-repo.sh alpine/git latest
     - ./sync-repo.sh library/golang latest
     - ./sync-repo.sh library/alpine latest
+    - ./sync-repo.sh gitlab-org/build/cng/gitaly v14.1.2 registry.gitlab.com
+    - ./sync-repo.sh amazon/aws-for-fluent-bit 2.10.0 registry.hub.docker.com

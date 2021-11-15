@@ -3,3 +3,6 @@ kind: Kustomization
 resources:
 - logging.yaml
 
+images:
+  - name: amazon/aws-for-fluent-bit
+    newName: 034795980528.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-for-fluent-bit

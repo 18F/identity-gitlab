@@ -15,6 +15,11 @@ metadata:
   name: gitlab
   namespace: gitlab
 spec:
+  postRenderers:
+    - kustomize:
+        images:
+          - name: registry.gitlab.com/gitlab-org/build/cng/gitaly
+            newName: 034795980528.dkr.ecr.us-west-2.amazonaws.com/gitlab-org/build/cng/gitaly
   interval: 5m
   timeout: 9m
   chart:

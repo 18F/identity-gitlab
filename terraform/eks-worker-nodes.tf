@@ -1,45 +1,58 @@
 #
-# EKS Worker Nodes Resources
+# EKS fargate
 #  * IAM role allowing Kubernetes actions to access other AWS services
 #  * EKS Node Group to launch worker nodes
 #
-resource "aws_eks_node_group" "eks" {
-  cluster_name    = aws_eks_cluster.eks.name
-  node_group_name = "eks-${var.cluster_name}"
-  node_role_arn   = aws_iam_role.eks-node.arn
-  subnet_ids      = aws_subnet.eks[*].id
-  instance_types  = [var.node_instance_type]
-  capacity_type   = var.nodetype
+resource "aws_eks_fargate_profile" "eks-system" {
+  cluster_name           = aws_eks_cluster.eks.name
+  fargate_profile_name   = "${var.cluster_name}-eks-system"
+  pod_execution_role_arn = aws_iam_role.fargate.arn
+  subnet_ids             = aws_subnet.eks[*].id
 
-  # if the cluster autoscaler grew us, don't mess with it
-  lifecycle {
-    ignore_changes = [scaling_config.0.desired_size]
+  timeouts {
+    # For reasons unknown, Fargate profiles can take upward of 20 minutes to
+    # delete! I've never seen them go past 30m, though, so this seems OK.
+    delete = "30m"
   }
 
-  scaling_config {
-    desired_size = 4
-    max_size     = var.node_max_size
-    min_size     = 1
+  selector {
+    namespace = "amazon-cloudwatch"
   }
-
-  disk_size = var.node_disk_size
-
-  tags = {
-    "k8s.io/cluster-autoscaler/enabled"             = "true",
-    "k8s.io/cluster-autoscaler/${var.cluster_name}" = "owned"
+  selector {
+    namespace = "flux-system"
   }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.eks-node-AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.eks-node-AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.eks-node-AmazonEC2ContainerRegistryReadOnly,
-    aws_nat_gateway.nat,
-    aws_networkfirewall_firewall.networkfw,
-    aws_internet_gateway.eks
-  ]
+  selector {
+    namespace = "kube-system"
+  }
+  selector {
+    namespace = "kubernetes-dashboard"
+  }
 }
 
-resource "aws_iam_role" "eks-node" {
+resource "aws_eks_fargate_profile" "eks" {
+  cluster_name           = aws_eks_cluster.eks.name
+  fargate_profile_name   = "${var.cluster_name}-eks"
+  pod_execution_role_arn = aws_iam_role.fargate.arn
+  subnet_ids             = aws_subnet.eks[*].id
+
+  timeouts {
+    # For reasons unknown, Fargate profiles can take upward of 20 minutes to
+    # delete! I've never seen them go past 30m, though, so this seems OK.
+    delete = "30m"
+  }
+
+  selector {
+    namespace = "default"
+  }
+  selector {
+    namespace = "gitlab"
+  }
+  selector {
+    namespace = "teleport"
+  }
+}
+
+resource "aws_iam_role" "fargate" {
   name = "${var.cluster_name}-noderole"
 
   assume_role_policy = <<POLICY
@@ -49,7 +62,7 @@ resource "aws_iam_role" "eks-node" {
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": "ec2.amazonaws.com"
+        "Service": "eks-fargate-pods.amazonaws.com"
       },
       "Action": "sts:AssumeRole"
     }
@@ -58,24 +71,19 @@ resource "aws_iam_role" "eks-node" {
 POLICY
 }
 
-resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.eks-node.name
-}
-
-resource "aws_iam_role_policy_attachment" "eks-node-AmazonEKS_CNI_Policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.eks-node.name
+resource "aws_iam_role_policy_attachment" "AmazonEKSFargatePodExecutionRolePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy"
+  role       = aws_iam_role.fargate.name
 }
 
 resource "aws_iam_role_policy_attachment" "eks-node-AmazonEC2ContainerRegistryReadOnly" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.eks-node.name
+  role       = aws_iam_role.fargate.name
 }
 
 resource "aws_iam_role_policy" "ebs_csi_driver" {
   name = "${var.cluster_name}_ebs_csi_driver"
-  role = aws_iam_role.eks-node.id
+  role = aws_iam_role.fargate.id
 
   policy = <<EOF
 {
@@ -104,9 +112,11 @@ resource "aws_iam_role_policy" "ebs_csi_driver" {
 EOF
 }
 
-resource "aws_iam_role_policy" "worker_nodes" {
-  name = "${var.cluster_name}_worker_nodes"
-  role = aws_iam_role.eks-node.id
+# This gives perms to stuff that runs in our pods
+# These are global.  You probably want to grant more specific policies with IRSA.
+resource "aws_iam_role_policy" "workers" {
+  name = "${var.cluster_name}_workers"
+  role = aws_iam_role.fargate.id
 
   policy = <<EOF
 {

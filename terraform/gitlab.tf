@@ -1,6 +1,6 @@
 
 resource "kubernetes_namespace" "gitlab" {
-  depends_on = [aws_eks_node_group.eks]
+  depends_on = [aws_eks_fargate_profile.eks]
   metadata {
     name = "gitlab"
   }
@@ -178,7 +178,7 @@ resource "aws_db_instance" "gitlab" {
   allocated_storage       = 8
   max_allocated_storage   = 100
   engine                  = "postgres"
-  engine_version          = "13.2"
+  engine_version          = "13.3"
   instance_class          = "db.t3.large"
   name                    = "gitlabhq_production"
   username                = "gitlab"

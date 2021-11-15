@@ -10,7 +10,7 @@
 #
 
 resource "kubernetes_namespace" "teleport" {
-  depends_on = [aws_eks_node_group.eks]
+  depends_on = [aws_eks_fargate_profile.eks]
 
   metadata {
     name = "teleport"
