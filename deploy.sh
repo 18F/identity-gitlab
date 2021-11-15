@@ -72,6 +72,10 @@ popd
 # This updates the kubeconfig so that we can access the cluster using kubectl
 aws eks update-kubeconfig --name "$TF_VAR_cluster_name"
 kubectl exec -it deployment.apps/teleport-cluster -n teleport -- tctl create -f < ./teleport-roles.yaml
+kubectl patch deployment coredns \
+        --namespace kube-system \
+        --type=json \
+        -p='[{"op": "remove", "path": "/spec/template/metadata/annotations", "value": "eks.amazonaws.com/compute-type"}]'
 
 # Enable Github SSO if the secrets exist
 if aws secretsmanager describe-secret --secret-id "${TF_VAR_cluster_name}-teleport-github-id" >/dev/null 2>&1 ; then

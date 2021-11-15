@@ -28,7 +28,7 @@ resource "aws_eks_cluster" "eks" {
     #prevent_destroy = true
   }
 
-  version = "1.19"
+  version = "1.20"
 
   depends_on = [
     aws_iam_role_policy_attachment.eks-cluster-AmazonEKSClusterPolicy,
@@ -109,8 +109,9 @@ data:
     - groups:
       - system:bootstrappers
       - system:nodes
+      - system:node-proxier
       rolearn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.cluster_name}-noderole
-      username: system:node:{{EC2PrivateDNSName}}
+      username: system:node:{{SessionName}}
   mapUsers: |
     - userarn: arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AutoTerraform
       username: terraform

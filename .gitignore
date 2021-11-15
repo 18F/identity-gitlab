@@ -3,6 +3,7 @@ public.crt
 .terraform
 terraform/errored.tfstate
 terraform/.terraform/
+terraform/.terraform.lock.hcl
 terraform/dev.log
 terraform-state/.terraform/
 *.pem
