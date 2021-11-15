@@ -11,4 +11,4 @@ resources:
 - ./metrics-server/
 - ./dashboard/
 - ./aws-vpc-cni/
-- ./aws-efs-cni/
+- ./aws-efs-csi/
