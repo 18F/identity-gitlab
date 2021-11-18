@@ -6,6 +6,8 @@ sync_from_github:
     - cd .git
     - git config --bool core.bare true
     - git remote rm origin
+    - git remote rm github || true
+    - git remote rm gitlab || true
     - git remote add github https://identity-servers:"$github_identity_servers_access_key"@github.com/18F/"$CI_PROJECT_NAME".git
     - git config --unset remote.github.fetch
     - git config --add remote.github.fetch '+refs/tags/*:refs/tags/*'
