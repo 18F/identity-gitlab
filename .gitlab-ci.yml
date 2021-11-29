@@ -22,10 +22,10 @@ sync_images_to_ecr:
     - export CI_REGISTRY_PASSWORD="$(aws ecr get-login-password)"
     - export CI_REGISTRY_USER=AWS
     - export CI_REGISTRY="$(aws sts get-caller-identity --query Account --output text).dkr.ecr.$REGION.amazonaws.com"
-    - # usage:   ./sync-repo.sh <repo> <tag> [<registry>]
-    - # example: ./sync-repo.sh alpine/git latest
-    - # example: ./sync-repo.sh amazonlinux/amazonlinux latest public.ecr.aws
-    - # also:  the REGION, CI_REGISTRY_PASSWORD, CI_REGISTRY, CI_REGISTRY_USER environment variables must be set
+    # usage:   ./sync-repo.sh <repo> <tag> [<registry>]
+    # example: ./sync-repo.sh alpine/git latest
+    # example: ./sync-repo.sh amazonlinux/amazonlinux latest public.ecr.aws
+    # also:  the REGION, CI_REGISTRY_PASSWORD, CI_REGISTRY, CI_REGISTRY_USER environment variables must be set
     - ./sync-repo.sh alpine/git latest
     - ./sync-repo.sh library/golang latest
     - ./sync-repo.sh library/alpine latest
