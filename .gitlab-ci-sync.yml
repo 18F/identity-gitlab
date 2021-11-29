@@ -12,7 +12,7 @@ sync_from_github:
     - git config --unset remote.github.fetch
     - git config --add remote.github.fetch '+refs/tags/*:refs/tags/*'
     - git config --add remote.github.fetch '+refs/heads/*:refs/heads/*'
-    - git remote add gitlab https://identity-servers:"$gitlab_identity_servers_access_key"@gitlab-"$CLUSTER_NAME".gitlab.identitysandbox.gov/lg/"$CI_PROJECT_NAME".git
+    - git remote add gitlab https://root:"$GITLAB_API_TOKEN"@"$CI_SERVER_HOST"/lg/"$CI_PROJECT_NAME".git
     - git config --unset remote.gitlab.fetch
     - git config --add remote.gitlab.push '+refs/tags/*:refs/tags/*'
     - git config --add remote.gitlab.push '+refs/heads/*:refs/heads/*'
