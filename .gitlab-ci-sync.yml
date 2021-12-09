@@ -1,5 +1,7 @@
 sync_from_github:
-  image: mirror.gcr.io/alpine/git:latest
+  image:
+    name: mirror.gcr.io/alpine/git:latest
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   script:
