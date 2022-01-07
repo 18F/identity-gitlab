@@ -8,23 +8,25 @@
 resource "kubernetes_namespace" "amazon-cloudwatch" {
   depends_on = [aws_eks_fargate_profile.eks]
   metadata {
-    name = "amazon-cloudwatch"
+    name = "aws-observability"
   }
 }
 
 resource "kubernetes_config_map" "fluent-bit-cluster-info" {
   depends_on = [kubernetes_namespace.amazon-cloudwatch]
   metadata {
-    name      = "fluent-bit-cluster-info"
-    namespace = "amazon-cloudwatch"
+    name      = "aws-logging"
+    namespace = "aws-observability"
   }
 
   data = {
-    "cluster.name" = var.cluster_name
-    "logs.region"  = var.region
-    "http.server"  = "Off"
-    "http.port"    = ""
-    "read.head"    = "On"
-    "read.tail"    = "Off"
+    "output.conf" = <<EOF
+[OUTPUT]
+    Name cloudwatch_logs
+    Match   *
+    region ${var.region}
+    log_group_name /${var.cluster_name}-gitlab
+    log_stream_prefix pod-output-
+EOF
   }
 }

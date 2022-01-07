@@ -28,7 +28,7 @@ resource "aws_eks_cluster" "eks" {
     #prevent_destroy = true
   }
 
-  version = "1.20"
+  version = "1.21"
 
   depends_on = [
     aws_iam_role_policy_attachment.eks-cluster-AmazonEKSClusterPolicy,
