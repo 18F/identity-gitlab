@@ -2,33 +2,31 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: HelmRepository
 metadata:
-  name: aws-efs-csi-driver
+  name: aws-ebs-csi-driver
   namespace: flux-system
 spec:
   interval: 1m
-  url: https://kubernetes-sigs.github.io/aws-efs-csi-driver/
+  url: https://kubernetes-sigs.github.io/aws-ebs-csi-driver/
 
 ---
 apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
 metadata:
-  name: aws-efs-csi-driver
+  name: aws-ebs-csi-driver
   namespace: kube-system
 spec:
   interval: 5m
   chart:
     spec:
-      chart: aws-efs-csi-driver
-      version: "2.2.2"
+      chart: aws-ebs-csi-driver
+      version: "2.6.2"
       sourceRef:
         kind: HelmRepository
-        name: aws-efs-csi-driver
+        name: aws-ebs-csi-driver
         namespace: flux-system
       interval: 1m
   values:
-    # image:
-    #   repository: 602401143452.dkr.ecr.us-west-2.amazonaws.com/eks/aws-efs-csi-driver
     controller:
       serviceAccount:
         create: false
-        name: efs-csi-controller-sa
+        name: ebs-csi-controller-sa
