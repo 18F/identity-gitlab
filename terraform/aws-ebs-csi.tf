@@ -5,6 +5,7 @@ resource "aws_iam_role_policy" "ebs-csi" {
 
   # This came from curl -o iam-policy-example.json https://github.com/kubernetes-sigs/aws-ebs-csi-driver/blob/master/docs/example-iam-policy.json
   # which came from https://github.com/kubernetes-sigs/aws-ebs-csi-driver
+  # XXX probably need to key off of cluster name tags or something too.
   policy = <<EOF
 {
   "Version": "2012-10-17",
