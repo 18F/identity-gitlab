@@ -19,15 +19,15 @@ spec:
   chart:
     spec:
       chart: aws-efs-csi-driver
-      version: "2.2.0"
+      version: "2.2.2"
       sourceRef:
         kind: HelmRepository
         name: aws-efs-csi-driver
         namespace: flux-system
       interval: 1m
   values:
-    image:
-      repository: 602401143452.dkr.ecr.us-west-2.amazonaws.com/eks/aws-efs-csi-driver
+    # image:
+    #   repository: 602401143452.dkr.ecr.us-west-2.amazonaws.com/eks/aws-efs-csi-driver
     controller:
       serviceAccount:
         create: false
